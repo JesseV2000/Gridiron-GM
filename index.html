@@ -1,0 +1,2320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gridiron GM - Dynasty Fantasy Football</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,700;0,800;1,400&family=Barlow:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#05080b;--surf:#0c1219;--surf2:#121a23;--surf3:#1a2535;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);--text:#dde4ed;--text2:#7a90a8;--text3:#3a4d62;--green:#00e58a;--green2:#00b86e;--red:#ff3d57;--amber:#ffb020;--blue:#3b8eff;--gold:#f0c040;--purple:#9b6dff;--cyan:#00d4ff;--fd:'Barlow Condensed',sans-serif;--fb:'Barlow',sans-serif;--fh:'Bebas Neue',sans-serif}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+.field-bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.field-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 120% 80% at 50% -10%,rgba(0,42,18,0.55) 0%,transparent 65%),radial-gradient(ellipse 80% 50% at 20% 100%,rgba(0,30,60,0.3) 0%,transparent 60%)}
+.field-stripes{position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0px,transparent 119px,rgba(255,255,255,0.018) 119px,rgba(255,255,255,0.018) 238px)}
+.yard-lines{position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0px,transparent 118px,rgba(255,255,255,0.045) 118px,rgba(255,255,255,0.045) 120px)}
+.hash-marks{position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0px,transparent 59px,rgba(255,255,255,0.04) 59px,rgba(255,255,255,0.04) 61px);mask-image:repeating-linear-gradient(90deg,transparent 0px,transparent 31%,white 31%,white 33%,transparent 33%,transparent 67%,white 67%,white 69%,transparent 69%,transparent 100%);-webkit-mask-image:repeating-linear-gradient(90deg,transparent 0px,transparent 31%,white 31%,white 33%,transparent 33%,transparent 67%,white 67%,white 69%,transparent 69%,transparent 100%)}
+.sidelines{position:absolute;inset:0;border-left:1.5px solid rgba(255,255,255,0.055);border-right:1.5px solid rgba(255,255,255,0.055);margin:0 8%}
+.field-vignette{position:absolute;inset:0;background:radial-gradient(ellipse 100% 100% at 50% 50%,transparent 30%,rgba(5,8,11,0.65) 100%),linear-gradient(180deg,rgba(5,8,11,0.7) 0%,rgba(5,8,11,0.3) 20%,rgba(5,8,11,0.3) 80%,rgba(5,8,11,0.7) 100%)}
+.app-wrap{position:relative;z-index:1;max-width:520px;margin:0 auto;min-height:100vh}
+.gc{background:linear-gradient(155deg,rgba(18,26,35,0.93) 0%,rgba(10,16,22,0.96) 100%);border:1px solid var(--border);border-radius:14px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.gc-bright{background:linear-gradient(155deg,rgba(24,34,46,0.95) 0%,rgba(16,23,33,0.97) 100%);border:1px solid var(--border2);border-radius:14px}
+.glass-nav{background:rgba(5,8,11,0.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,255,255,0.08)}
+.bot-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;display:flex;padding:8px 4px 28px;z-index:100}
+.cap-track{background:var(--surf3);border-radius:20px;overflow:hidden}
+.cap-fill{height:100%;border-radius:20px;transition:width .5s ease}
+.pill{display:inline-flex;align-items:center;padding:2.5px 8px;border-radius:6px;font-family:var(--fd);font-weight:800;letter-spacing:.06em;white-space:nowrap}
+.toggle-track{width:44px;height:24px;border-radius:12px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle-thumb{width:20px;height:20px;border-radius:10px;background:#fff;position:absolute;top:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.stat-meter{height:4px;border-radius:4px;background:var(--surf3);overflow:hidden}
+.stat-meter-fill{height:100%;border-radius:4px;transition:width .8s ease}
+.modal-scrim{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease}
+.modal-sheet{background:linear-gradient(180deg,#121a23 0%,#0a1016 100%);width:100%;max-width:520px;border-radius:20px 20px 0 0;max-height:85vh;overflow-y:auto;-ms-overflow-style:none;scrollbar-width:none}
+.modal-sheet::-webkit-scrollbar{display:none}
+.drag-handle{width:36px;height:4px;border-radius:2px;background:var(--surf3);margin:10px auto 6px}
+.tab-row{display:flex;gap:2px;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none}
+.tab-row::-webkit-scrollbar{display:none}
+.tab-btn{padding:7px 14px;border-radius:8px;border:none;font-family:var(--fd);font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;letter-spacing:.04em}
+.tab-btn-on{background:var(--green);color:#000}
+.tab-btn-off{background:var(--surf2);color:var(--text2)}
+.btn-p{background:var(--green);color:#000;border:none;border-radius:10px;font-family:var(--fd);font-weight:900;font-size:13px;letter-spacing:.08em;cursor:pointer;padding:10px 20px;transition:transform .1s}
+.btn-p:hover{transform:scale(1.02)}.btn-p:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-g{background:transparent;border:1px solid var(--border2);color:var(--text2);border-radius:8px;font-family:var(--fd);font-weight:800;font-size:11px;cursor:pointer;padding:6px 12px}
+.btn-d{background:rgba(255,61,87,.1);border:1px solid rgba(255,61,87,.2);color:var(--red);border-radius:8px;font-family:var(--fd);font-weight:800;font-size:11px;cursor:pointer;padding:6px 12px}
+.yn-row{display:flex;justify-content:space-between;padding:0 7%}
+.yn{font-family:var(--fh);font-size:22px;color:rgba(255,255,255,0.025)}
+.grade-badge{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:24px;flex-shrink:0}
+.no-scroll{-ms-overflow-style:none;scrollbar-width:none}
+.no-scroll::-webkit-scrollbar{display:none}
+.notif-dot{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--red)}
+.spin-el{width:18px;height:18px;border:2px solid var(--surf3);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;display:inline-block}
+input[type="text"],input[type="number"]{background:var(--surf2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:var(--fb);font-size:14px;padding:10px 14px;outline:none;width:100%}
+input[type="text"]:focus,input[type="number"]:focus{border-color:var(--green)}
+input[type="range"]{width:100%;accent-color:var(--green);margin:8px 0}
+select{background:var(--surf2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:var(--fb);font-size:14px;padding:10px 14px;outline:none;width:100%;appearance:none;-webkit-appearance:none}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulsedot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.7)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(0.8)}to{opacity:1;transform:scale(1)}}
+@keyframes lotteryReveal{0%{transform:rotateY(180deg) scale(0.5);opacity:0}60%{transform:rotateY(0deg) scale(1.15);opacity:1}100%{transform:rotateY(0deg) scale(1);opacity:1}}
+@keyframes trophyShine{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes barGrow{from{width:0}to{width:var(--target-w)}}
+.rise{animation:rise .32s cubic-bezier(.25,.8,.25,1) forwards}
+.slide-in{animation:slideIn .25s ease forwards}
+.pop-in{animation:popIn .2s ease forwards}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);animation:pulsedot 1.5s ease infinite}
+.hov{transition:transform .15s ease,box-shadow .15s ease;cursor:pointer}
+.hov:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.55)}
+.lottery-card{animation:lotteryReveal .8s cubic-bezier(.34,1.56,.64,1) forwards;transform-style:preserve-3d}
+.trophy-shine{background:linear-gradient(90deg,transparent 25%,rgba(240,192,64,0.15) 50%,transparent 75%);background-size:200% 100%;animation:trophyShine 3s ease infinite}
+.bar-grow{animation:barGrow 1s cubic-bezier(.4,0,.2,1) forwards}
+.timeline-dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--green);background:var(--bg);position:relative;z-index:2;flex-shrink:0}
+.timeline-dot-active{background:var(--green);box-shadow:0 0 10px rgba(0,229,138,0.5)}
+.timeline-line{width:2px;background:var(--surf3);position:absolute;top:0;bottom:0;left:5px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback, useMemo, useRef } = React;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GRIDIRON GM v5 — Phase 1+2+3 Complete Platform
+   Phase 1: Trade System | FAAB Waivers | Franchise Tags | Extensions | Amnesty
+   Phase 2: Pick Value Tracker | Draft Lottery | Hall of Fame | Weekly Report
+   Phase 3: Chat + DMs | Co-Owners | Player Profiles | Devy | IDP | Empire Mode
+   All Systems Functional | All Features Toggleable
+═══════════════════════════════════════════════════════════════════════════ */
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STYLES
+// ═══════════════════════════════════════════════════════════════════════════
+const STYLES = `
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,700;0,800;1,400&family=Barlow:wght@400;500;600;700;800;900&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#05080b;--surf:#0c1219;--surf2:#121a23;--surf3:#1a2535;
+--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+--text:#dde4ed;--text2:#7a90a8;--text3:#3a4d62;
+--green:#00e58a;--green2:#00b86e;--red:#ff3d57;--amber:#ffb020;
+--blue:#3b8eff;--gold:#f0c040;--purple:#9b6dff;--cyan:#00d4ff;
+--fd:'Barlow Condensed',sans-serif;--fb:'Barlow',sans-serif;--fh:'Bebas Neue',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+.field-bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.field-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 120% 80% at 50% -10%,rgba(0,42,18,0.55) 0%,transparent 65%),radial-gradient(ellipse 80% 50% at 20% 100%,rgba(0,30,60,0.3) 0%,transparent 60%)}
+.field-stripes{position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0px,transparent 119px,rgba(255,255,255,0.018) 119px,rgba(255,255,255,0.018) 238px)}
+.yard-lines{position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0px,transparent 118px,rgba(255,255,255,0.045) 118px,rgba(255,255,255,0.045) 120px)}
+.hash-marks{position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0px,transparent 59px,rgba(255,255,255,0.04) 59px,rgba(255,255,255,0.04) 61px);mask-image:repeating-linear-gradient(90deg,transparent 0px,transparent 31%,white 31%,white 33%,transparent 33%,transparent 67%,white 67%,white 69%,transparent 69%,transparent 100%);-webkit-mask-image:repeating-linear-gradient(90deg,transparent 0px,transparent 31%,white 31%,white 33%,transparent 33%,transparent 67%,white 67%,white 69%,transparent 69%,transparent 100%)}
+.sidelines{position:absolute;inset:0;border-left:1.5px solid rgba(255,255,255,0.055);border-right:1.5px solid rgba(255,255,255,0.055);margin:0 8%}
+.field-vignette{position:absolute;inset:0;background:radial-gradient(ellipse 100% 100% at 50% 50%,transparent 30%,rgba(5,8,11,0.65) 100%),linear-gradient(180deg,rgba(5,8,11,0.7) 0%,rgba(5,8,11,0.3) 20%,rgba(5,8,11,0.3) 80%,rgba(5,8,11,0.7) 100%)}
+.app-wrap{position:relative;z-index:1;max-width:520px;margin:0 auto;min-height:100vh}
+.gc{background:linear-gradient(155deg,rgba(18,26,35,0.93) 0%,rgba(10,16,22,0.96) 100%);border:1px solid var(--border);border-radius:14px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.gc-bright{background:linear-gradient(155deg,rgba(24,34,46,0.95) 0%,rgba(16,23,33,0.97) 100%);border:1px solid var(--border2);border-radius:14px}
+.glass-nav{background:rgba(5,8,11,0.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,255,255,0.08)}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulsedot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.7)}}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(0.8)}to{opacity:1;transform:scale(1)}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 8px rgba(0,229,138,0.2)}50%{box-shadow:0 0 20px rgba(0,229,138,0.5)}}
+@keyframes lotteryReveal{0%{transform:rotateY(180deg) scale(0.5);opacity:0}60%{transform:rotateY(0deg) scale(1.15);opacity:1}100%{transform:rotateY(0deg) scale(1);opacity:1}}
+@keyframes trophyShine{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes confetti{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(400px) rotate(720deg);opacity:0}}
+@keyframes countUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes barGrow{from{width:0}to{width:var(--target-w)}}
+.lottery-card{animation:lotteryReveal .8s cubic-bezier(.34,1.56,.64,1) forwards;transform-style:preserve-3d}
+.trophy-shine{background:linear-gradient(90deg,transparent 25%,rgba(240,192,64,0.15) 50%,transparent 75%);background-size:200% 100%;animation:trophyShine 3s ease infinite}
+.count-up{animation:countUp .4s ease forwards}
+.bar-grow{animation:barGrow 1s cubic-bezier(.4,0,.2,1) forwards}
+.confetti-piece{position:absolute;width:8px;height:8px;border-radius:2px;animation:confetti 2s ease forwards;pointer-events:none}
+.timeline-dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--green);background:var(--bg);position:relative;z-index:2;flex-shrink:0}
+.timeline-dot-active{background:var(--green);box-shadow:0 0 10px rgba(0,229,138,0.5)}
+.timeline-line{width:2px;background:var(--surf3);position:absolute;top:0;bottom:0;left:5px}
+.rise{animation:rise .32s cubic-bezier(.25,.8,.25,1) forwards}
+.slide-in{animation:slideIn .25s ease forwards}
+.pop-in{animation:popIn .2s ease forwards}
+.ticker-ani{animation:ticker 30s linear infinite}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);animation:pulsedot 1.5s ease infinite}
+.amber-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--amber);animation:pulsedot 1.5s ease infinite}
+.hov{transition:transform .15s ease,box-shadow .15s ease;cursor:pointer}
+.hov:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.55)}
+.hov:active{transform:translateY(0)}
+.modal-scrim{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:300;display:flex;align-items:flex-end;justify-content:center}
+.modal-sheet{width:100%;max-width:520px;max-height:92vh;overflow-y:auto;border-radius:22px 22px 0 0;background:var(--bg);padding-bottom:30px}
+.drag-handle{width:40px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;margin:10px auto 6px}
+.btn-p{background:linear-gradient(135deg,var(--green),var(--green2));color:#000;font-family:var(--fd);font-size:14px;font-weight:800;letter-spacing:.05em;border:none;border-radius:10px;padding:11px 20px;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 5px 20px rgba(0,229,138,.35)}
+.btn-p:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn-g{background:transparent;border:1px solid var(--border2);color:var(--text2);font-family:var(--fd);font-size:13px;font-weight:700;letter-spacing:.04em;border-radius:9px;padding:9px 15px;cursor:pointer;transition:all .15s}
+.btn-g:hover{border-color:var(--green);color:var(--green)}
+.btn-d{background:rgba(255,61,87,.1);border:1px solid rgba(255,61,87,.2);color:var(--red);font-family:var(--fd);font-size:13px;font-weight:700;border-radius:9px;padding:9px 15px;cursor:pointer;transition:all .15s}
+.btn-d:hover{background:rgba(255,61,87,.2)}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:var(--surf3);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--green);cursor:pointer}
+input[type=text],input[type=search],input[type=number]{background:var(--surf2);border:1px solid var(--border);color:var(--text);font-family:var(--fb);font-size:14px;border-radius:10px;padding:10px 14px;width:100%;outline:none}
+input[type=text]:focus,input[type=search]:focus,input[type=number]:focus{border-color:rgba(0,229,138,.4)}
+select{background:var(--surf2);border:1px solid var(--border);color:var(--text);font-family:var(--fb);font-size:13px;border-radius:8px;padding:8px 12px;outline:none;cursor:pointer}
+.cap-track{height:5px;border-radius:3px;background:var(--surf3);overflow:hidden}
+.cap-fill{height:100%;border-radius:3px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.tab-row{display:flex;gap:3px;background:var(--surf2);padding:4px;border-radius:12px;border:1px solid var(--border)}
+.tab-btn{flex:1;padding:8px 4px;border:none;border-radius:9px;font-family:var(--fd);font-size:12px;font-weight:800;letter-spacing:.06em;cursor:pointer;transition:all .15s}
+.tab-btn-on{background:var(--surf3);color:var(--text)}
+.tab-btn-off{background:transparent;color:var(--text3)}
+.pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;font-family:var(--fd);font-weight:800;letter-spacing:.06em}
+.notif-dot{position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--red)}
+.spin-el{width:18px;height:18px;border:2px solid var(--surf3);border-top-color:var(--green);border-radius:50%;animation:spin .6s linear infinite}
+.bot-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;display:flex;padding:8px 0 env(safe-area-inset-bottom,8px);justify-content:space-around;max-width:520px;margin:0 auto}
+.no-scroll{-ms-overflow-style:none;scrollbar-width:none}.no-scroll::-webkit-scrollbar{display:none}
+.stat-meter{position:relative;height:6px;border-radius:3px;background:var(--surf3);overflow:hidden}
+.stat-meter-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.yn-row{display:flex;justify-content:space-between;padding:0 9%;opacity:0.06;pointer-events:none}
+.yn{font-family:var(--fh);font-size:22px;color:white;letter-spacing:.05em}
+.toggle-track{width:44px;height:24px;border-radius:12px;cursor:pointer;transition:background .2s;position:relative;flex-shrink:0}
+.toggle-thumb{width:20px;height:20px;border-radius:50%;background:white;position:absolute;top:2px;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.grade-badge{display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:14px;font-family:var(--fh);font-size:32px}
+.radar-ring{fill:none}.radar-axis{stroke:rgba(255,255,255,0.07)}.radar-data{fill:rgba(0,229,138,0.15);stroke:var(--green);stroke-width:1.5}
+.radar-label{fill:var(--text2);font-family:var(--fd);font-size:9px;font-weight:700;letter-spacing:.08em}
+`;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UTILITY COMPONENTS
+// ═══════════════════════════════════════════════════════════════════════════
+const PC = p => ({QB:"#ff6060",RB:"#00e58a",WR:"#3b8eff",TE:"#ffb020",K:"#9b6dff",DL:"#ff9500",LB:"#00d4ff",DB:"#9b6dff"})[p]||"#7a90a8";
+
+function CapBar({used,total,label,compact}){
+  const pct=Math.min(100,(used/total)*100);
+  const c=pct>90?"#ff3d57":pct>78?"#ffb020":"#00e58a";
+  return(<div>{label&&<div style={{display:"flex",justifyContent:"space-between",marginBottom:5,fontSize:11,fontFamily:"var(--fd)",fontWeight:700,letterSpacing:".08em"}}><span style={{color:"var(--text3)"}}>SALARY CAP</span><span style={{color:c}}>${used}<span style={{color:"var(--text3)"}}> / ${total}</span></span></div>}<div className="cap-track" style={{height:compact?3:5}}><div className="cap-fill" style={{width:`${pct}%`,background:`linear-gradient(90deg,${c},${c}88)`}}/></div></div>);
+}
+function Pill({children,bg="var(--surf3)",col="var(--text2)",sz=10}){return <span className="pill" style={{background:bg,color:col,fontSize:sz}}>{children}</span>}
+function Pips({total,left}){return(<div style={{display:"flex",gap:2.5}}>{Array.from({length:total}).map((_,i)=><div key={i} style={{width:7,height:7,borderRadius:2,background:i<left?"var(--green)":"var(--surf3)"}}/>)}</div>)}
+function Toggle({on,onToggle,label}){return(<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0"}}><span style={{fontSize:13,color:on?"var(--text)":"var(--text2)"}}>{label}</span><div className="toggle-track" style={{background:on?"var(--green)":"var(--surf3)"}} onClick={onToggle}><div className="toggle-thumb" style={{left:on?22:2}}/></div></div>)}
+function MiniSparkline({data,color="#00e58a",width=60,height=24}){if(!data||data.length<2)return null;const max=Math.max(...data),min=Math.min(...data),range=max-min||1;const pts=data.map((v,i)=>{const x=(i/(data.length-1))*width;const y=height-((v-min)/range)*height;return`${x},${y}`}).join(" ");return <svg width={width} height={height} style={{overflow:"visible"}}><polyline points={pts} fill="none" stroke={color} strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"/></svg>}
+function SectionHead({children,right}){return <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><div style={{fontSize:11,fontFamily:"var(--fd)",fontWeight:800,letterSpacing:".12em",color:"var(--text3)"}}>{children}</div>{right}</div>}
+function FieldBg(){return(<div className="field-bg"><div className="field-stripes"/><div className="yard-lines"/><div className="hash-marks"/><div className="sidelines"/><div className="field-vignette"/><div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",justifyContent:"space-around",padding:"60px 0"}}>{[10,20,30,40,50,40,30,20,10].map((n,i)=><div key={i} className="yn-row"><span className="yn">{n}</span><span className="yn" style={{transform:"rotate(180deg)"}}>{n}</span></div>)}</div></div>)}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LEAGUE SETTINGS / FEATURE TOGGLES (Commissioner Controls)
+// ═══════════════════════════════════════════════════════════════════════════
+const DEFAULT_SETTINGS = {
+  leagueName: "Gridiron Dynasty",
+  salaryCap: 250,
+  maxContractYears: 5,
+  rookieContractLength: 4,
+  deadCapPct: 25,
+  salaryEscalator: false,
+  escalatorPct: 10,
+  // Feature Toggles
+  franchiseTag: true,
+  extensions: true,
+  amnestyClause: true,
+  amnestiesPerSeason: 1,
+  tradeSystem: true,
+  tradeVoting: true,
+  tradeVotesNeeded: 4,
+  tradeDeadlineWeek: 12,
+  multiTeamTrades: true,
+  aiTradeGrades: true,
+  tradeBlock: true,
+  waiverType: "faab", // "faab" | "rolling" | "reverse"
+  faabBudget: 100,
+  faabCountsVsCap: false,
+  taxiSquad: true,
+  taxiSquadSize: 3,
+  taxiPoaching: true,
+  taxiPoachingWindow: 24,
+  rookieDraft: true,
+  rookieDraftType: "linear", // "linear" | "auction"
+  draftLottery: true,
+  lotteryWeights: true,
+  pickTrading: true,
+  futurePickYears: 3,
+  superflex: false,
+  idp: false,
+  devy: false,
+  weeklyAwards: true,
+  rivalryWeeks: false,
+  bounties: false,
+  sidePots: true,
+  sidePotsWeeklyAmount: 5,
+  empireMode: false,
+  empireChampionships: 3,
+  teamWindowDeclaration: true,
+  hallOfFame: true,
+  leagueHealthScore: true,
+  weeklyCommishReport: true,
+  offseasonCalendar: true,
+  gmRating: true,
+  tradePushNotifications: true,
+  nflCapMirror: false,
+  contentIntegration: true,
+  pickValueTracker: true,
+  multiLeaguePortfolio: false,
+  // Phase 3
+  leagueChat: true,
+  directMessages: true,
+  coOwners: true,
+  maxCoOwners: 2,
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA LAYER
+// ═══════════════════════════════════════════════════════════════════════════
+const INITIAL_TEAMS = [
+  {id:"t1",name:"Gridiron Kings",owners:["You"],logo:"\u{1F91F}",cap:201,record:"8-2",pts:1124,streak:"W3",window:"contending",gmRating:92,amnestiesUsed:0,faab:67,picks:{"2025":["1.03","2.03","3.03"],"2026":["1.03","2.03","3.03"],"2027":["1.03","2.03","3.03"]}},
+  {id:"t2",name:"Cap Criminals",owners:["Mike T.","Jake W."],logo:"\u{1F9B9}",cap:218,record:"7-3",pts:1089,streak:"W1",window:"contending",gmRating:85,amnestiesUsed:0,faab:42,picks:{"2025":["1.06","2.06"],"2026":["1.06","2.06","3.06"],"2027":["1.06","2.06","3.06"]}},
+  {id:"t3",name:"Salary Savants",owners:["Dan S."],logo:"\u{1F9E0}",cap:195,record:"6-4",pts:1043,streak:"L1",window:"retooling",gmRating:88,amnestiesUsed:1,faab:91,picks:{"2025":["1.02","2.02","3.02","3.06"],"2026":["1.02","2.02","3.02"],"2027":["1.02","2.02","3.02"]}},
+  {id:"t4",name:"The Dynasty",owners:["Sarah K."],logo:"\u{1F3C6}",cap:224,record:"6-4",pts:1031,streak:"W2",window:"contending",gmRating:79,amnestiesUsed:0,faab:55,picks:{"2025":["1.04","2.04","3.04"],"2026":["1.04","2.04","3.04"],"2027":["1.04","2.04","3.04"]}},
+  {id:"t5",name:"Junk Bonds",owners:["Chris P."],logo:"\u{1F4B8}",cap:188,record:"5-5",pts:987,streak:"L2",window:"rebuilding",gmRating:71,amnestiesUsed:0,faab:100,picks:{"2025":["1.01","1.05","2.01","2.05","3.05"],"2026":["1.05","2.05","3.05"],"2027":["1.05","2.05","3.05"]}},
+  {id:"t6",name:"Dead Money",owners:["Alex R.","Sam B."],logo:"\u{1F480}",cap:247,record:"4-6",pts:952,streak:"L3",window:"rebuilding",gmRating:63,amnestiesUsed:1,faab:34,picks:{"2025":["2.08"],"2026":["1.08","2.08","3.08"],"2027":["1.08","2.08","3.08"]}},
+  {id:"t7",name:"RookieWatch",owners:["Jordan L."],logo:"\u{1F3C8}",cap:163,record:"3-7",pts:901,streak:"W1",window:"rebuilding",gmRating:76,amnestiesUsed:0,faab:88,picks:{"2025":["1.07","2.07","3.01","3.07","3.08"],"2026":["1.01","1.07","2.07","3.07"],"2027":["1.07","2.07","3.07"]}},
+  {id:"t8",name:"Waiver Wire",owners:["Pat M."],logo:"\u{1F300}",cap:178,record:"2-8",pts:844,streak:"L4",window:"rebuilding",gmRating:58,amnestiesUsed:0,faab:76,picks:{"2025":["1.08","2.08"],"2026":["1.03","2.03","3.03"],"2027":["1.03","2.03","3.03"]}},
+];
+
+const INITIAL_ROSTER = [
+  {id:"lj",name:"Lamar Jackson",pos:"QB",team:"BAL",salary:38,contract:4,left:3,slot:"QB1",pts:[28.3,31.7,22.1,18.9,33.4],status:"active",ext:true,owner:"t1",tagged:false,age:28,college:"Louisville",draftPick:"1.32 (2018)",height:"6-2",weight:212,forty:"4.34",armLength:'32.5"',bench:0,ras:9.91,nextOpp:"PIT",nextOppRank:8,byeWeek:14},
+  {id:"bh",name:"Breece Hall",pos:"RB",team:"NYJ",salary:22,contract:3,left:2,slot:"RB1",pts:[21.7,14.2,18.5,8.3,22.0],status:"active",owner:"t1",tagged:false,age:23,college:"Iowa State",draftPick:"2.04 (2022)",height:"6-1",weight:220,forty:"4.39",armLength:'32.9"',bench:20,ras:9.78,nextOpp:"NE",nextOppRank:22,byeWeek:12},
+  {id:"br",name:"Bijan Robinson",pos:"RB",team:"ATL",salary:28,contract:3,left:1,slot:"RB2",pts:[24.1,19.8,26.3,21.0,17.4],status:"questionable",ext:true,owner:"t1",tagged:false,age:22,college:"Texas",draftPick:"1.08 (2023)",height:"6-0",weight:215,forty:"4.46",armLength:'31.5"',bench:22,ras:8.62,nextOpp:"TB",nextOppRank:14,byeWeek:12},
+  {id:"jj",name:"Justin Jefferson",pos:"WR",team:"MIN",salary:35,contract:5,left:4,slot:"WR1",pts:[22.5,28.1,31.2,14.7,24.8],status:"active",owner:"t1",tagged:false,age:25,college:"LSU",draftPick:"1.22 (2020)",height:"6-1",weight:195,forty:"4.43",armLength:'33.0"',bench:14,ras:8.37,nextOpp:"CHI",nextOppRank:28,byeWeek:13},
+  {id:"pn",name:"Puka Nacua",pos:"WR",team:"LAR",salary:14,contract:3,left:3,slot:"WR2",pts:[18.3,21.0,16.7,22.4,19.1],status:"active",rookie:true,owner:"t1",tagged:false,age:23,college:"BYU",draftPick:"5.17 (2023)",height:"6-2",weight:205,forty:"4.50",armLength:'32.6"',bench:16,ras:7.21,nextOpp:"SEA",nextOppRank:18,byeWeek:13},
+  {id:"sl",name:"Sam LaPorta",pos:"TE",team:"DET",salary:11,contract:3,left:2,slot:"TE1",pts:[14.2,11.8,18.1,9.6,15.3],status:"active",rookie:true,owner:"t1",tagged:false,age:24,college:"Iowa",draftPick:"2.02 (2023)",height:"6-3",weight:245,forty:"4.59",armLength:'32.1"',bench:18,ras:8.45,nextOpp:"GB",nextOppRank:12,byeWeek:14},
+  {id:"cl",name:"CeeDee Lamb",pos:"WR",team:"DAL",salary:41,contract:4,left:3,slot:"FLEX",pts:[26.8,19.3,22.7,28.1,17.5],status:"active",owner:"t1",tagged:false,age:25,college:"Oklahoma",draftPick:"1.17 (2020)",height:"6-2",weight:198,forty:"4.50",armLength:'31.5"',bench:11,ras:8.19,nextOpp:"NYG",nextOppRank:30,byeWeek:12},
+  {id:"tk",name:"Travis Kelce",pos:"TE",team:"KC",salary:18,contract:1,left:0,slot:"BN",pts:[12.1,8.7,14.3,11.2,9.8],status:"active",owner:"t1",tagged:false,age:35,college:"Cincinnati",draftPick:"3.01 (2013)",height:"6-5",weight:250,forty:"4.61",armLength:'33.9"',bench:26,ras:7.42,nextOpp:"LV",nextOppRank:24,byeWeek:10},
+  {id:"kw",name:"Kenneth Walker",pos:"RB",team:"SEA",salary:16,contract:2,left:1,slot:"BN",pts:[16.4,22.1,0,18.7,14.2],status:"active",owner:"t1",tagged:false,age:24,college:"Michigan State",draftPick:"2.09 (2022)",height:"5-10",weight:211,forty:"4.38",armLength:'30.5"',bench:21,ras:9.54,nextOpp:"LAR",nextOppRank:20,byeWeek:10},
+  {id:"ja",name:"Jordan Addison",pos:"WR",team:"MIN",salary:9,contract:3,left:3,slot:"BN",pts:[11.2,14.8,9.3,16.1,12.7],status:"active",rookie:true,owner:"t1",tagged:false,age:22,college:"USC",draftPick:"1.23 (2023)",height:"5-11",weight:175,forty:"4.49",armLength:'31.0"',bench:9,ras:6.15,nextOpp:"CHI",nextOppRank:28,byeWeek:13},
+  {id:"rr",name:"Rashee Rice",pos:"WR",team:"KC",salary:7,contract:2,left:2,slot:"IR",pts:[0,0,0,0,18.3],status:"ir",owner:"t1",tagged:false,age:24,college:"SMU",draftPick:"2.23 (2023)",height:"6-1",weight:204,forty:"4.51",armLength:'32.8"',bench:17,ras:7.88,nextOpp:"LV",nextOppRank:24,byeWeek:10},
+  {id:"js",name:"Jaylen Samuels",pos:"RB",team:"FA",salary:3,contract:3,left:3,slot:"TS",pts:[0,0,0,4.2,7.1],status:"active",rookie:true,owner:"t1",tagged:false,age:22,college:"Tennessee",draftPick:"UDFA (2024)",height:"5-11",weight:218,forty:"4.48",armLength:'31.2"',bench:19,ras:7.66,nextOpp:"--",nextOppRank:16,byeWeek:0},
+];
+
+const INITIAL_FREE_AGENTS = [
+  {id:"fa1",name:"Khalil Shakir",pos:"WR",team:"BUF",salary:0,contract:0,left:0,slot:"FA",pts:[14.2,11.8,16.3,9.7,13.1],status:"active",owner:null,age:25,college:"Boise State",height:"6-0",weight:196,forty:"4.43",nextOpp:"MIA",nextOppRank:16},
+  {id:"fa2",name:"Gus Edwards",pos:"RB",team:"LAC",salary:0,contract:0,left:0,slot:"FA",pts:[10.1,8.4,12.7,7.2,9.8],status:"active",owner:null,age:29,college:"Rutgers",height:"6-1",weight:238,forty:"4.52",nextOpp:"KC",nextOppRank:6},
+  {id:"fa3",name:"Jake Ferguson",pos:"TE",team:"DAL",salary:0,contract:0,left:0,slot:"FA",pts:[11.3,9.2,14.1,8.6,10.4],status:"active",owner:null,age:25,college:"Wisconsin",height:"6-5",weight:250,forty:"4.72",nextOpp:"NYG",nextOppRank:30},
+  {id:"fa4",name:"Tyler Allgeier",pos:"RB",team:"ATL",salary:0,contract:0,left:0,slot:"FA",pts:[8.4,12.1,6.7,10.3,9.2],status:"active",owner:null,age:25,college:"BYU",height:"5-11",weight:224,forty:"4.56",nextOpp:"TB",nextOppRank:14},
+  {id:"fa5",name:"Dontayvion Wicks",pos:"WR",team:"GB",salary:0,contract:0,left:0,slot:"FA",pts:[7.8,11.4,5.2,13.6,8.9],status:"active",owner:null,age:24,college:"Virginia",height:"6-1",weight:206,forty:"4.43",nextOpp:"DET",nextOppRank:4},
+  {id:"fa6",name:"Chigoziem Okonkwo",pos:"TE",team:"TEN",salary:0,contract:0,left:0,slot:"FA",pts:[9.1,7.3,11.8,6.4,8.7],status:"active",owner:null,age:25,college:"Maryland",height:"6-3",weight:238,forty:"4.52",nextOpp:"JAX",nextOppRank:26},
+  {id:"fa7",name:"Jerome Ford",pos:"RB",team:"CLE",salary:0,contract:0,left:0,slot:"FA",pts:[6.2,9.8,4.1,11.7,7.4],status:"active",owner:null,age:25,college:"Cincinnati",height:"5-11",weight:210,forty:"4.46",nextOpp:"PIT",nextOppRank:8},
+  {id:"fa8",name:"Quentin Johnston",pos:"WR",team:"LAC",salary:0,contract:0,left:0,slot:"FA",pts:[5.1,8.9,12.3,4.7,9.6],status:"active",owner:null,age:23,college:"TCU",height:"6-3",weight:215,forty:"4.48",nextOpp:"KC",nextOppRank:6},
+];
+
+const OPPONENT_ROSTERS = [
+  {id:"op1",name:"Patrick Mahomes",pos:"QB",team:"KC",salary:52,contract:5,left:4,slot:"QB1",pts:[32,28,24,30,26],status:"active",owner:"t2"},
+  {id:"op2",name:"Tyreek Hill",pos:"WR",team:"MIA",salary:36,contract:4,left:3,slot:"WR1",pts:[22,18,26,14,20],status:"active",owner:"t2"},
+  {id:"op3",name:"Josh Allen",pos:"QB",team:"BUF",salary:44,contract:4,left:3,slot:"QB1",pts:[28,34,22,26,30],status:"active",owner:"t3"},
+  {id:"op4",name:"Ja'Marr Chase",pos:"WR",team:"CIN",salary:32,contract:4,left:4,slot:"WR1",pts:[24,20,28,18,22],status:"active",owner:"t4"},
+  {id:"op5",name:"Saquon Barkley",pos:"RB",team:"PHI",salary:26,contract:3,left:2,slot:"RB1",pts:[20,16,24,22,18],status:"active",owner:"t5"},
+  {id:"op6",name:"Garrett Wilson",pos:"WR",team:"NYJ",salary:18,contract:3,left:2,slot:"WR1",pts:[16,14,20,12,18],status:"active",owner:"t6"},
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 2 DATA
+// ═══════════════════════════════════════════════════════════════════════════
+const PICK_VALUES = {
+  "1.01":100,"1.02":92,"1.03":85,"1.04":78,"1.05":72,"1.06":66,"1.07":61,"1.08":56,
+  "2.01":48,"2.02":44,"2.03":40,"2.04":37,"2.05":34,"2.06":31,"2.07":28,"2.08":25,
+  "3.01":20,"3.02":18,"3.03":16,"3.04":14,"3.05":12,"3.06":11,"3.07":10,"3.08":9,
+};
+const getPickValue = (pick) => PICK_VALUES[pick] || 5;
+
+const HALL_OF_FAME = {
+  champions: [
+    {season:2,year:2024,team:"Gridiron Kings",owner:"You",record:"8-4",pts:1712,logo:"\u{1F91F}",mvp:"Lamar Jackson"},
+    {season:1,year:2023,team:"Cap Criminals",owner:"Mike T.",record:"10-2",pts:1544,logo:"\u{1F9B9}",mvp:"Josh Allen"},
+  ],
+  records: [
+    {record:"Highest Weekly Score",value:"168.4 pts",holder:"Gridiron Kings",season:2,week:6},
+    {record:"Most Points (Season)",value:"1,712 pts",holder:"Gridiron Kings",season:2},
+    {record:"Longest Win Streak",value:"7 wins",holder:"Cap Criminals",season:1},
+    {record:"Best Draft ROI",value:"+142% value",holder:"Salary Savants",season:2},
+    {record:"Biggest Trade Heist",value:"3-for-1 steal",holder:"RookieWatch",season:1},
+    {record:"Most Transactions",value:"47 moves",holder:"Waiver Wire",season:2},
+  ],
+  allTimePF: [
+    {team:"Gridiron Kings",pts:2836,seasons:2,logo:"\u{1F91F}"},
+    {team:"Cap Criminals",pts:2633,seasons:2,logo:"\u{1F9B9}"},
+    {team:"Salary Savants",pts:2486,seasons:2,logo:"\u{1F9E0}"},
+    {team:"The Dynasty",pts:2401,seasons:2,logo:"\u{1F3C6}"},
+  ],
+};
+
+const WEEKLY_AWARDS_DATA = [
+  {week:10,awards:[
+    {type:"Highest Scorer",team:"Gridiron Kings",player:"Lamar Jackson",value:"33.4 pts",icon:"\u{1F3AF}",color:"var(--green)"},
+    {type:"Biggest Blowout",team:"The Dynasty",player:null,value:"Won by 44.2",icon:"\u{1F4A5}",color:"var(--red)"},
+    {type:"Upset of Week",team:"RookieWatch",player:null,value:"Beat #2 seed",icon:"\u{1F451}",color:"var(--blue)"},
+    {type:"Best Bench",team:"Salary Savants",player:"Josh Allen",value:"34 pts on bench",icon:"\u{1F92F}",color:"var(--purple)"},
+    {type:"Worst Start",team:"Dead Money",player:"Rashee Rice",value:"0 pts (IR)",icon:"\u{1F926}",color:"var(--text3)"},
+  ]},
+  {week:9,awards:[
+    {type:"Highest Scorer",team:"Cap Criminals",player:"Patrick Mahomes",value:"38.1 pts",icon:"\u{1F3AF}",color:"var(--green)"},
+    {type:"Biggest Blowout",team:"Gridiron Kings",player:null,value:"Won by 38.7",icon:"\u{1F4A5}",color:"var(--red)"},
+    {type:"Closest Game",team:"Junk Bonds",player:null,value:"Lost by 0.4",icon:"\u{1F62C}",color:"var(--amber)"},
+  ]},
+];
+
+const OFFSEASON_CALENDAR = [
+  {date:"Feb 15",event:"Franchise Tag Window Opens",status:"active",icon:"\u{1F3F7}\uFE0F",desc:"Teams can apply franchise tags to expiring players"},
+  {date:"Mar 1",event:"Extension Deadline",status:"upcoming",icon:"\u{1F4DD}",desc:"Last day to extend current contracts at current rates"},
+  {date:"Mar 10",event:"Free Agency Opens",status:"upcoming",icon:"\u{1F4B0}",desc:"All uncontracted players enter the FAAB waiver pool"},
+  {date:"Mar 20",event:"Franchise Tag Deadline",status:"upcoming",icon:"\u23F0",desc:"Final day to apply franchise tags"},
+  {date:"Apr 10",event:"Rookie Draft Lottery",status:"upcoming",icon:"\u{1F3B0}",desc:"Lottery ceremony determines draft order for non-playoff teams"},
+  {date:"Apr 24",event:"NFL Draft (Rd 1-3)",status:"upcoming",icon:"\u{1F3C8}",desc:"Real NFL draft \u2014 watch rookie values shift in real-time"},
+  {date:"May 5",event:"Rookie Draft",status:"upcoming",icon:"\u{1F3AF}",desc:"League rookie draft \u2014 linear or auction based on settings"},
+  {date:"May 15",event:"Amnesty Window Opens",status:"upcoming",icon:"\u2728",desc:"Teams can exercise their annual amnesty clause"},
+  {date:"Jun 1",event:"Taxi Squad Deadline",status:"upcoming",icon:"\u{1F69A}",desc:"Taxi squad rosters must be finalized"},
+  {date:"Aug 1",event:"Trade Deadline Preview",status:"upcoming",icon:"\u{1F504}",desc:"Trade activity historically peaks \u2014 start building offers"},
+  {date:"Sep 1",event:"Season Starts",status:"upcoming",icon:"\u{1F3C8}",desc:"Week 1 kicks off \u2014 lineups lock at game time"},
+  {date:"Nov 15",event:"Trade Deadline",status:"upcoming",icon:"\u{1F6D1}",desc:"Final day for all trades (Week 12)"},
+];
+
+const ROOKIE_CLASS = [
+  {id:"rk1",name:"Shedeur Sanders",pos:"QB",team:"TBD",adp:1.01,value:100,projection:22.5,comp:"Lamar Jackson"},
+  {id:"rk2",name:"Cam Ward",pos:"QB",team:"TBD",adp:1.02,value:92,projection:20.8,comp:"Josh Allen"},
+  {id:"rk3",name:"Travis Hunter",pos:"WR",team:"TBD",adp:1.03,value:85,projection:18.2,comp:"Ja'Marr Chase"},
+  {id:"rk4",name:"Ashton Jeanty",pos:"RB",team:"TBD",adp:1.04,value:78,projection:19.5,comp:"Saquon Barkley"},
+  {id:"rk5",name:"Tetairoa McMillan",pos:"WR",team:"TBD",adp:1.05,value:72,projection:16.4,comp:"Justin Jefferson"},
+  {id:"rk6",name:"Luther Burden III",pos:"WR",team:"TBD",adp:1.06,value:66,projection:15.1,comp:"CeeDee Lamb"},
+  {id:"rk7",name:"Mason Graham",pos:"DL",team:"TBD",adp:1.07,value:61,projection:0,comp:"(IDP)"},
+  {id:"rk8",name:"Omarion Hampton",pos:"RB",team:"TBD",adp:1.08,value:56,projection:14.8,comp:"Breece Hall"},
+  {id:"rk9",name:"Isaiah Bond",pos:"WR",team:"TBD",adp:2.01,value:48,projection:12.3,comp:"Puka Nacua"},
+  {id:"rk10",name:"Emeka Egbuka",pos:"WR",team:"TBD",adp:2.02,value:44,projection:11.8,comp:"Garrett Wilson"},
+  {id:"rk11",name:"TreVeyon Henderson",pos:"RB",team:"TBD",adp:2.03,value:40,projection:12.1,comp:"Kenneth Walker"},
+  {id:"rk12",name:"Tyler Warren",pos:"TE",team:"TBD",adp:2.04,value:37,projection:10.4,comp:"Sam LaPorta"},
+];
+
+const LEAGUE_HEALTH = {
+  overallScore: 87,
+  metrics: [
+    {name:"Trade Activity",score:92,detail:"14 trades this season (avg 1.4/wk)",trend:"up"},
+    {name:"Lineup Changes",score:88,detail:"All teams set lineups 95% of weeks",trend:"stable"},
+    {name:"Chat Engagement",score:78,detail:"6/8 teams active in chat weekly",trend:"up"},
+    {name:"Waiver Activity",score:95,detail:"42 FAAB claims processed",trend:"up"},
+    {name:"Login Frequency",score:82,detail:"Avg 4.2 logins/week per manager",trend:"stable"},
+    {name:"On-Time Payments",score:91,detail:"7/8 paid on time",trend:"stable"},
+  ],
+  dormantTeams: [{team:"Dead Money",lastActive:"3 days ago",concern:"low"},{team:"Waiver Wire",lastActive:"5 days ago",concern:"medium"}],
+};
+
+const INITIAL_CHAT_MESSAGES = [
+  {id:1,from:"t2",name:"Mike T.",msg:"Anyone want to deal a WR2? I've got cap space and picks to move.",time:"2m ago",channel:"league"},
+  {id:2,from:"t5",name:"Chris P.",msg:"Rebuilding fire sale. Everything must go. DM me offers.",time:"15m ago",channel:"league"},
+  {id:3,from:"t3",name:"Dan S.",msg:"That Lamar game was insane. 33 points lol",time:"28m ago",channel:"league"},
+  {id:4,from:"t7",name:"Jordan L.",msg:"Who's the pickup of the week? I've got $88 FAAB burning a hole.",time:"1h ago",channel:"league"},
+  {id:5,from:"t4",name:"Sarah K.",msg:"Trade deadline is coming up. Let's get some deals done!",time:"2h ago",channel:"league"},
+  {id:6,from:"t1",name:"You",msg:"Looking to move Kelce. 1yr left, great rental for a contender.",time:"3h ago",channel:"league"},
+  {id:7,from:"t2",name:"Mike T.",msg:"Hey, interested in Kelce. What's the ask?",time:"1h ago",channel:"dm-t2"},
+  {id:8,from:"t1",name:"You",msg:"A 2nd rounder would get it done. Your 2026 2.06?",time:"50m ago",channel:"dm-t2"},
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AI TRADE GRADE ENGINE
+// ═══════════════════════════════════════════════════════════════════════════
+async function aiTradeGrade(team1Players, team2Players, team1Picks, team2Picks, settings) {
+  const t1Val = team1Players.reduce((s,p) => s + playerValue(p, settings), 0) + team1Picks.length * 12;
+  const t2Val = team2Players.reduce((s,p) => s + playerValue(p, settings), 0) + team2Picks.length * 12;
+  const diff = t1Val - t2Val;
+  const totalVal = t1Val + t2Val || 1;
+  const pct = Math.round(50 + (diff / totalVal) * 50);
+
+  const prompt = `You are a dynasty fantasy football trade analyst. Grade this trade.
+Team A receives: ${team2Players.map(p=>`${p.name} ($${p.salary}, ${p.left}yr left)`).join(", ")}${team2Picks.length?` + picks: ${team2Picks.join(", ")}`:""}
+Team B receives: ${team1Players.map(p=>`${p.name} ($${p.salary}, ${p.left}yr left)`).join(", ")}${team1Picks.length?` + picks: ${team1Picks.join(", ")}`:""}
+Salary cap: $${settings.salaryCap}. Respond as JSON only: {grade: "A+/A/B+/B/C+/C/D/F", team1Pct: number 0-100, summary: "1 sentence", team1Analysis: "why team A wins/loses", team2Analysis: "why team B wins/loses", fairness: "fair/slight edge/lopsided"}`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 600, messages: [{role:"user",content:prompt}] })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || "";
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) return JSON.parse(match[0]);
+  } catch {}
+
+  // Fallback
+  const grade = pct>65?"A+":pct>58?"A":pct>52?"B+":pct>48?"B":pct>42?"C+":pct>35?"C":"D";
+  const sumText = pct > 55 ? "Team A favored" : pct < 45 ? "Team B favored" : "Balanced trade";
+  const fairText = Math.abs(pct-50) < 8 ? "fair" : Math.abs(pct-50) < 15 ? "slight edge" : "lopsided";
+  return { grade, team1Pct: pct, summary: sumText + " based on contract value and production.", team1Analysis: "Receiving younger talent with longer contract control.", team2Analysis: "Getting proven production and immediate cap relief.", fairness: fairText };
+}
+
+function playerValue(p, settings) {
+  if (!p) return 0;
+  const avg = p.pts.filter(x=>x>0).reduce((a,b)=>a+b,0)/Math.max(1,p.pts.filter(x=>x>0).length);
+  const posMultiplier = settings.superflex && p.pos==="QB" ? 1.8 : ({QB:1.2,RB:1.0,WR:1.1,TE:0.9})[p.pos] || 1;
+  const contractValue = p.left * 5;
+  const capEfficiency = Math.max(0, (avg - p.salary) * 2);
+  return Math.round((avg * posMultiplier + contractValue + capEfficiency) * 10) / 10;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AI PREDICTION ENGINE
+// ═══════════════════════════════════════════════════════════════════════════
+async function generateProjection(player) {
+  const avg = player.pts.filter(x=>x>0).reduce((a,b)=>a+b,0)/Math.max(1,player.pts.filter(x=>x>0).length);
+  const high = Math.max(...player.pts.filter(x=>x>0).concat([0]));
+  const low = Math.min(...player.pts.filter(x=>x>0).concat([0]));
+  const oppRank = player.nextOppRank || 16;
+
+  const prompt = "You are a dynasty fantasy football analyst. Predict this week for " + player.name + " (" + player.pos + ", " + player.team + "). Season avg: " + avg.toFixed(1) + " PPG. Last 5 weeks: " + player.pts.join(", ") + ". Opponent: " + (player.nextOpp||"TBD") + " (ranked #" + oppRank + " vs " + player.pos + "). Physical: " + (player.height||"--") + ", " + (player.weight||"--") + "lb, " + (player.forty||"--") + "s 40. Age: " + (player.age||"--") + ". Return JSON only, no backticks: {projection: number, confidence: 0-100, grade: A-F, floor: number, ceiling: number, factors: [3 strings], risks: [2 strings], matchupAdvantage: string}";
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 500, messages: [{role:"user",content:prompt}] })
+    });
+    const data = await res.json();
+    const text = (data.content && data.content[0] && data.content[0].text) || "";
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) return JSON.parse(match[0]);
+  } catch(e) { /* fallback below */ }
+
+  // Fallback local prediction
+  const oppAdj = oppRank <= 10 ? -2.5 : oppRank >= 24 ? 2.8 : 0;
+  const trend = player.pts[0] > avg ? 1.5 : -1;
+  const proj = Math.round((avg + oppAdj + trend) * 10) / 10;
+  return {
+    projection: Math.max(0, proj),
+    confidence: Math.round(60 + (5 - Math.abs(high - low)) * 2),
+    grade: proj > avg * 1.15 ? "A" : proj > avg * 0.95 ? "B" : proj > avg * 0.75 ? "C" : "D",
+    floor: Math.round(Math.max(0, proj * 0.6) * 10) / 10,
+    ceiling: Math.round(proj * 1.5 * 10) / 10,
+    factors: [
+      oppRank <= 10 ? "Tough matchup vs top-10 defense" : "Favorable matchup vs weak defense",
+      player.pts[0] > avg ? "Trending up, recent hot streak" : "Below average recent performance",
+      (player.age || 25) <= 25 ? "Young ascending talent" : "Veteran with proven floor"
+    ],
+    risks: [
+      player.status === "questionable" ? "Injury concern - game-time decision" : "Workload management possible",
+      oppRank <= 10 ? "Defensive scheme may limit upside" : "Possible gamescript dependence"
+    ],
+    matchupAdvantage: oppRank >= 24 ? "Strong advantage: defense ranks bottom-8" : oppRank <= 8 ? "Disadvantage: elite defense" : "Neutral matchup"
+  };
+}
+
+// MATCHUP DATA
+const MATCHUP_DATA = {
+  week: 11,
+  yourTeam: "t1",
+  opponent: "t2",
+  yourProj: 128.5,
+  oppProj: 121.2,
+  winProb: 58,
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN APP
+// ═══════════════════════════════════════════════════════════════════════════
+function App() {
+  const [screen, setScreen] = useState("home");
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [teams, setTeams] = useState(INITIAL_TEAMS);
+  const [roster, setRoster] = useState(INITIAL_ROSTER);
+  const [freeAgents, setFreeAgents] = useState(INITIAL_FREE_AGENTS);
+  const [trades, setTrades] = useState([]);
+  const [waiverClaims, setWaiverClaims] = useState([]);
+  const [tradeBlock, setTradeBlock] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [transactionLog, setTransactionLog] = useState([]);
+  const [modal, setModal] = useState(null);
+  const [chatMessages, setChatMessages] = useState(INITIAL_CHAT_MESSAGES);
+  const [chatInput, setChatInput] = useState("");
+  const [chatChannel, setChatChannel] = useState("league");
+
+  const myTeam = teams.find(t=>t.id==="t1");
+  const myRoster = roster.filter(p=>p.owner==="t1");
+  const capUsed = myRoster.filter(p=>p.slot!=="IR"&&p.slot!=="TS").reduce((s,p)=>s+p.salary,0)
+    + myRoster.filter(p=>p.slot==="TS").reduce((s,p)=>s+Math.round(p.salary*.25),0);
+  const capLeft = settings.salaryCap - capUsed;
+  const deadCapTotal = myRoster.reduce((s,p)=>s+Math.max(0,(p.left-1)*Math.round(p.salary*(settings.deadCapPct/100))),0);
+
+  const addNotification = useCallback((msg, type="info") => {
+    const id = Date.now();
+    setNotifications(n => [...n, {id, msg, type, time: new Date()}]);
+    setTimeout(() => setNotifications(n => n.filter(x=>x.id!==id)), 5000);
+  }, []);
+
+  const logTransaction = useCallback((action, detail) => {
+    setTransactionLog(l => [{id:Date.now(), action, detail, time:new Date(), team:"t1"}, ...l]);
+  }, []);
+
+  // ─── CUT PLAYER ──────────────────────────────────────────────────────
+  const cutPlayer = useCallback((playerId) => {
+    const p = roster.find(x=>x.id===playerId);
+    if (!p) return;
+    const dead = Math.max(0, (p.left-1) * Math.round(p.salary * (settings.deadCapPct/100)));
+    setRoster(r => r.filter(x=>x.id!==playerId));
+    setFreeAgents(fa => [...fa, {...p, salary:0, contract:0, left:0, slot:"FA", owner:null}]);
+    logTransaction("CUT", `${p.name} released. Dead cap: $${dead}`);
+    addNotification(`${p.name} released. $${dead} dead cap.`, "red");
+  }, [roster, settings, logTransaction, addNotification]);
+
+  // ─── AMNESTY ─────────────────────────────────────────────────────────
+  const amnestyCut = useCallback((playerId) => {
+    if (!settings.amnestyClause) return;
+    const team = teams.find(t=>t.id==="t1");
+    if (team.amnestiesUsed >= settings.amnestiesPerSeason) {
+      addNotification("No amnesty clauses remaining this season.", "amber");
+      return;
+    }
+    const p = roster.find(x=>x.id===playerId);
+    if (!p) return;
+    setRoster(r => r.filter(x=>x.id!==playerId));
+    setFreeAgents(fa => [...fa, {...p, salary:0, contract:0, left:0, slot:"FA", owner:null}]);
+    setTeams(ts => ts.map(t => t.id==="t1" ? {...t, amnestiesUsed: t.amnestiesUsed+1} : t));
+    logTransaction("AMNESTY", `${p.name} amnesty cut. No dead cap.`);
+    addNotification(`\u2728 ${p.name} amnesty cut — $0 dead cap!`, "green");
+  }, [roster, teams, settings, logTransaction, addNotification]);
+
+  // ─── FRANCHISE TAG ───────────────────────────────────────────────────
+  const franchiseTag = useCallback((playerId) => {
+    if (!settings.franchiseTag) return;
+    const p = roster.find(x=>x.id===playerId);
+    if (!p) return;
+    const tagSalary = Math.round(p.salary * 1.2);
+    setRoster(r => r.map(x => x.id===playerId ? {...x, salary:tagSalary, contract:1, left:1, tagged:true} : x));
+    logTransaction("FRANCHISE TAG", `${p.name} tagged at $${tagSalary}/yr`);
+    addNotification(`\u{1F3F7}\uFE0F ${p.name} franchise tagged — $${tagSalary}/yr`, "amber");
+  }, [roster, settings, logTransaction, addNotification]);
+
+  // ─── EXTENSION ───────────────────────────────────────────────────────
+  const extendPlayer = useCallback((playerId, years, newSalary) => {
+    if (!settings.extensions) return;
+    setRoster(r => r.map(x => x.id===playerId ? {...x, salary:newSalary, contract:years, left:years, ext:false} : x));
+    const p = roster.find(x=>x.id===playerId);
+    logTransaction("EXTENSION", `${p?.name} extended ${years}yr / $${newSalary} per yr`);
+    addNotification(`\u{1F4DD} ${p?.name} extended — ${years}yr / $${newSalary}`, "green");
+  }, [roster, settings, logTransaction, addNotification]);
+
+  // ─── WAIVER BID ──────────────────────────────────────────────────────
+  const submitWaiverBid = useCallback((playerId, amount, contractYrs) => {
+    if (settings.waiverType === "faab" && amount > myTeam.faab) {
+      addNotification("Insufficient FAAB budget!", "red");
+      return;
+    }
+    if (amount + capUsed > settings.salaryCap) {
+      addNotification("Bid would exceed salary cap!", "red");
+      return;
+    }
+    const player = freeAgents.find(p=>p.id===playerId);
+    setWaiverClaims(wc => [...wc, {id:Date.now(), playerId, playerName:player?.name, amount, contractYrs, team:"t1", status:"pending", time:new Date()}]);
+    logTransaction("WAIVER BID", `$${amount} bid on ${player?.name} (${contractYrs}yr)`);
+    addNotification(`\u{1F4B0} Waiver bid: $${amount} on ${player?.name}`, "green");
+  }, [freeAgents, settings, myTeam, capUsed, logTransaction, addNotification]);
+
+  // ─── PROCESS WAIVER (simulate) ───────────────────────────────────────
+  const processWaiver = useCallback((claimId) => {
+    const claim = waiverClaims.find(c=>c.id===claimId);
+    if (!claim) return;
+    const player = freeAgents.find(p=>p.id===claim.playerId);
+    if (!player) return;
+    setFreeAgents(fa => fa.filter(p=>p.id!==claim.playerId));
+    setRoster(r => [...r, {...player, salary:claim.amount, contract:claim.contractYrs, left:claim.contractYrs, slot:"BN", owner:"t1"}]);
+    setWaiverClaims(wc => wc.map(c => c.id===claimId ? {...c, status:"won"} : c));
+    setTeams(ts => ts.map(t => t.id==="t1" ? {...t, faab: t.faab - claim.amount} : t));
+    logTransaction("WAIVER WON", `Acquired ${player.name} — $${claim.amount}/${claim.contractYrs}yr`);
+    addNotification(`\u2705 Won ${player.name} — $${claim.amount}/${claim.contractYrs}yr!`, "green");
+  }, [waiverClaims, freeAgents, logTransaction, addNotification]);
+
+  // ─── SUBMIT TRADE ────────────────────────────────────────────────────
+  const submitTrade = useCallback((otherTeamId, myPlayers, theirPlayers, myPicks, theirPicks) => {
+    if (!settings.tradeSystem) return;
+    const otherTeam = teams.find(t=>t.id===otherTeamId);
+    const trade = {
+      id: Date.now(),
+      team1: "t1", team2: otherTeamId,
+      team1Name: myTeam.name, team2Name: otherTeam?.name,
+      team1Players: myPlayers, team2Players: theirPlayers,
+      team1Picks: myPicks, team2Picks: theirPicks,
+      status: settings.tradeVoting ? "pending" : "approved",
+      votes: {for:0, against:0, needed: settings.tradeVotesNeeded},
+      grade: null,
+      time: new Date()
+    };
+    setTrades(t => [trade, ...t]);
+    logTransaction("TRADE SUBMITTED", `Trade with ${otherTeam?.name}`);
+    addNotification(`\u{1F504} Trade submitted with ${otherTeam?.name}`, "blue");
+    return trade;
+  }, [settings, teams, myTeam, logTransaction, addNotification]);
+
+  // ─── EXECUTE TRADE ───────────────────────────────────────────────────
+  const executeTrade = useCallback((tradeId) => {
+    const trade = trades.find(t=>t.id===tradeId);
+    if (!trade) return;
+    // Swap players
+    setRoster(r => r.map(p => {
+      if (trade.team1Players.includes(p.id)) return {...p, owner: trade.team2};
+      if (trade.team2Players.includes(p.id)) return {...p, owner: trade.team1};
+      return p;
+    }));
+    setTrades(t => t.map(x => x.id===tradeId ? {...x, status:"completed"} : x));
+    logTransaction("TRADE COMPLETED", `Trade with ${trade.team2Name} executed`);
+    addNotification(`\u2705 Trade with ${trade.team2Name} completed!`, "green");
+  }, [trades, logTransaction, addNotification]);
+
+  // ─── TRADE BLOCK ─────────────────────────────────────────────────────
+  const addToTradeBlock = useCallback((playerId, askingPrice) => {
+    const p = roster.find(x=>x.id===playerId);
+    if (!p) return;
+    setTradeBlock(tb => [...tb, {playerId, playerName: p.name, pos: p.pos, team: p.team, salary: p.salary, left: p.left, askingPrice, owner: "t1", time: new Date()}]);
+    addNotification(`\u{1F6D2} ${p.name} added to trade block`, "blue");
+  }, [roster, addNotification]);
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // TRADE MODAL
+  // ═══════════════════════════════════════════════════════════════════════
+  function TradeModal({ otherTeamId, onClose }) {
+    const [mySelected, setMySelected] = useState([]);
+    const [theirSelected, setTheirSelected] = useState([]);
+    const [myPicksSelected, setMyPicksSelected] = useState([]);
+    const [theirPicksSelected, setTheirPicksSelected] = useState([]);
+    const [grading, setGrading] = useState(false);
+    const [grade, setGrade] = useState(null);
+    const [tab, setTab] = useState("players");
+
+    const otherTeam = teams.find(t=>t.id===otherTeamId);
+    const theirRoster = [...roster.filter(p=>p.owner===otherTeamId), ...OPPONENT_ROSTERS.filter(p=>p.owner===otherTeamId)];
+    const myPicks = myTeam.picks;
+    const theirPicks = otherTeam?.picks || {};
+
+    const myCapAfter = capUsed - mySelected.reduce((s,id)=>{const p=myRoster.find(x=>x.id===id);return s+(p?p.salary:0)},0) + theirSelected.reduce((s,id)=>{const p=theirRoster.find(x=>x.id===id);return s+(p?p.salary:0)},0);
+    const overCap = myCapAfter > settings.salaryCap;
+
+    const runGrade = async () => {
+      if (!settings.aiTradeGrades) return;
+      setGrading(true);
+      const myP = mySelected.map(id=>myRoster.find(x=>x.id===id)).filter(Boolean);
+      const theirP = theirSelected.map(id=>theirRoster.find(x=>x.id===id)).filter(Boolean);
+      const result = await aiTradeGrade(myP, theirP, myPicksSelected, theirPicksSelected, settings);
+      setGrade(result);
+      setGrading(false);
+    };
+
+    const submit = () => {
+      if (overCap) return;
+      if (mySelected.length===0 && myPicksSelected.length===0) return;
+      if (theirSelected.length===0 && theirPicksSelected.length===0) return;
+      const trade = submitTrade(otherTeamId, mySelected, theirSelected, myPicksSelected, theirPicksSelected);
+      if (grade && trade) {
+        setTrades(t => t.map(x => x.id===trade.id ? {...x, grade} : x));
+      }
+      onClose();
+    };
+
+    const toggleMy = id => setMySelected(s=>s.includes(id)?s.filter(x=>x!==id):[...s,id]);
+    const toggleTheir = id => setTheirSelected(s=>s.includes(id)?s.filter(x=>x!==id):[...s,id]);
+    const toggleMyPick = p => setMyPicksSelected(s=>s.includes(p)?s.filter(x=>x!==p):[...s,p]);
+    const toggleTheirPick = p => setTheirPicksSelected(s=>s.includes(p)?s.filter(x=>x!==p):[...s,p]);
+
+    const gradeColor = g => ({["A+"]:"#00e58a",A:"#00e58a",["B+"]:"#00e58a",B:"#ffb020",["C+"]:"#ffb020",C:"#ff9500",D:"#ff3d57",F:"#ff3d57"})[g]||"#7a90a8";
+
+    return (
+      <div className="modal-scrim" onClick={onClose}>
+        <div className="modal-sheet" onClick={e=>e.stopPropagation()} style={{maxHeight:"95vh"}}>
+          <div className="drag-handle"/>
+          <div style={{padding:"12px 20px 0"}}>
+            <div style={{fontFamily:"var(--fh)",fontSize:26,marginBottom:4}}>TRADE CENTER</div>
+            <div style={{fontSize:12,color:"var(--text2)",marginBottom:12}}>
+              {myTeam.logo} {myTeam.name} \u2194 {otherTeam?.logo} {otherTeam?.name}
+            </div>
+
+            {/* Cap impact banner */}
+            <div style={{padding:"10px 14px",borderRadius:10,marginBottom:12,background:overCap?"rgba(255,61,87,.1)":"rgba(0,229,138,.06)",border:`1px solid ${overCap?"rgba(255,61,87,.3)":"rgba(0,229,138,.2)"}`}}>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:12}}>
+                <span style={{color:"var(--text2)"}}>Your cap after trade:</span>
+                <span style={{fontFamily:"var(--fd)",fontWeight:900,color:overCap?"var(--red)":"var(--green)"}}>${myCapAfter} / ${settings.salaryCap}</span>
+              </div>
+              {overCap && <div style={{fontSize:11,color:"var(--red)",marginTop:4}}>\u26A0 Trade exceeds salary cap — cannot submit</div>}
+            </div>
+
+            <div className="tab-row" style={{marginBottom:12}}>
+              {[["players","Players"],["picks","Picks"]].map(([id,label])=>(
+                <button key={id} className={`tab-btn ${tab===id?"tab-btn-on":"tab-btn-off"}`} onClick={()=>setTab(id)}>{label}</button>
+              ))}
+            </div>
+          </div>
+
+          {tab==="players" && (
+            <div style={{padding:"0 20px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {/* My players */}
+              <div>
+                <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--green)",letterSpacing:".1em",marginBottom:6}}>YOU SEND</div>
+                {myRoster.map(p=>(
+                  <div key={p.id} onClick={()=>toggleMy(p.id)} style={{padding:"8px 10px",marginBottom:4,borderRadius:8,cursor:"pointer",border:`1px solid ${mySelected.includes(p.id)?"var(--green)":"var(--border)"}`,background:mySelected.includes(p.id)?"rgba(0,229,138,.08)":"transparent",transition:"all .15s"}}>
+                    <div style={{fontSize:12,fontWeight:600}}>{p.name}</div>
+                    <div style={{fontSize:10,color:"var(--text2)"}}>{p.pos} | ${p.salary} | {p.left}yr</div>
+                  </div>
+                ))}
+              </div>
+              {/* Their players */}
+              <div>
+                <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--blue)",letterSpacing:".1em",marginBottom:6}}>YOU RECEIVE</div>
+                {theirRoster.map(p=>(
+                  <div key={p.id} onClick={()=>toggleTheir(p.id)} style={{padding:"8px 10px",marginBottom:4,borderRadius:8,cursor:"pointer",border:`1px solid ${theirSelected.includes(p.id)?"var(--blue)":"var(--border)"}`,background:theirSelected.includes(p.id)?"rgba(59,142,255,.08)":"transparent",transition:"all .15s"}}>
+                    <div style={{fontSize:12,fontWeight:600}}>{p.name}</div>
+                    <div style={{fontSize:10,color:"var(--text2)"}}>{p.pos} | ${p.salary} | {p.left}yr</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {tab==="picks" && settings.pickTrading && (
+            <div style={{padding:"0 20px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              <div>
+                <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--green)",letterSpacing:".1em",marginBottom:6}}>YOUR PICKS TO SEND</div>
+                {Object.entries(myPicks).map(([yr,picks])=>
+                  picks.map(pick=>(
+                    <div key={pick+yr} onClick={()=>toggleMyPick(`${yr} ${pick}`)} style={{padding:"8px 10px",marginBottom:4,borderRadius:8,cursor:"pointer",border:`1px solid ${myPicksSelected.includes(`${yr} ${pick}`)?"var(--green)":"var(--border)"}`,background:myPicksSelected.includes(`${yr} ${pick}`)?"rgba(0,229,138,.08)":"transparent"}}>
+                      <div style={{fontSize:12,fontWeight:600}}>{yr} \u2014 Pick {pick}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div>
+                <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--blue)",letterSpacing:".1em",marginBottom:6}}>THEIR PICKS YOU GET</div>
+                {Object.entries(theirPicks).map(([yr,picks])=>
+                  picks.map(pick=>(
+                    <div key={pick+yr} onClick={()=>toggleTheirPick(`${yr} ${pick}`)} style={{padding:"8px 10px",marginBottom:4,borderRadius:8,cursor:"pointer",border:`1px solid ${theirPicksSelected.includes(`${yr} ${pick}`)?"var(--blue)":"var(--border)"}`,background:theirPicksSelected.includes(`${yr} ${pick}`)?"rgba(59,142,255,.08)":"transparent"}}>
+                      <div style={{fontSize:12,fontWeight:600}}>{yr} \u2014 Pick {pick}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* AI Grade */}
+          <div style={{padding:"12px 20px"}}>
+            {settings.aiTradeGrades && !grade && (
+              <button className="btn-g" style={{width:"100%",marginBottom:8,color:"var(--cyan)",borderColor:"rgba(0,212,255,.3)"}} onClick={runGrade} disabled={grading || (mySelected.length===0&&myPicksSelected.length===0)}>
+                {grading ? <><span className="spin-el" style={{display:"inline-block",marginRight:8,verticalAlign:"middle"}}/> AI Analyzing...</> : "\u{1F9E0} GET AI TRADE GRADE"}
+              </button>
+            )}
+            {grade && (
+              <div className="gc pop-in" style={{padding:"14px 16px",marginBottom:12,borderLeft:`3px solid ${gradeColor(grade.grade)}`}}>
+                <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
+                  <div className="grade-badge" style={{background:`${gradeColor(grade.grade)}18`,color:gradeColor(grade.grade)}}>{grade.grade}</div>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:11,fontFamily:"var(--fd)",fontWeight:800,color:gradeColor(grade.grade),letterSpacing:".1em"}}>AI TRADE GRADE</div>
+                    <div style={{fontSize:13,color:"var(--text)",marginTop:2}}>{grade.summary}</div>
+                  </div>
+                </div>
+                <div style={{display:"flex",gap:8,marginBottom:8}}>
+                  <div style={{flex:1,padding:"8px",borderRadius:8,background:"rgba(0,229,138,.06)"}}>
+                    <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--green)",marginBottom:2}}>YOU ({grade.team1Pct}%)</div>
+                    <div style={{fontSize:11,color:"var(--text2)"}}>{grade.team1Analysis}</div>
+                  </div>
+                  <div style={{flex:1,padding:"8px",borderRadius:8,background:"rgba(59,142,255,.06)"}}>
+                    <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--blue)",marginBottom:2}}>THEM ({100-grade.team1Pct}%)</div>
+                    <div style={{fontSize:11,color:"var(--text2)"}}>{grade.team2Analysis}</div>
+                  </div>
+                </div>
+                <Pill bg={grade.fairness==="fair"?"rgba(0,229,138,.12)":"rgba(255,176,32,.12)"} col={grade.fairness==="fair"?"var(--green)":"var(--amber)"} sz={10}>{grade.fairness?.toUpperCase()}</Pill>
+              </div>
+            )}
+
+            <button className="btn-p" style={{width:"100%"}} disabled={overCap||(mySelected.length===0&&myPicksSelected.length===0)||(theirSelected.length===0&&theirPicksSelected.length===0)} onClick={submit}>
+              SUBMIT TRADE OFFER
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // WAIVER MODAL
+  // ═══════════════════════════════════════════════════════════════════════
+  function WaiverModal({ player, onClose }) {
+    const [bid, setBid] = useState(1);
+    const [yrs, setYrs] = useState(1);
+    return (
+      <div className="modal-scrim" onClick={onClose}>
+        <div className="modal-sheet" onClick={e=>e.stopPropagation()} style={{maxHeight:"60vh"}}>
+          <div className="drag-handle"/>
+          <div style={{padding:"16px 20px"}}>
+            <div style={{fontFamily:"var(--fh)",fontSize:24,marginBottom:4}}>WAIVER CLAIM</div>
+            <div style={{fontSize:14,fontWeight:600,marginBottom:2}}>{player.name} <Pill bg={PC(player.pos)+"22"} col={PC(player.pos)} sz={10}>{player.pos}</Pill></div>
+            <div style={{fontSize:12,color:"var(--text2)",marginBottom:16}}>{player.team} | Avg: {(player.pts.filter(x=>x>0).reduce((a,b)=>a+b,0)/Math.max(1,player.pts.filter(x=>x>0).length)).toFixed(1)} PPG</div>
+
+            {settings.waiverType==="faab" && (
+              <div style={{marginBottom:16}}>
+                <div style={{display:"flex",justifyContent:"space-between",fontSize:11,fontFamily:"var(--fd)",fontWeight:700,color:"var(--text2)",marginBottom:6}}>
+                  <span>FAAB BID</span><span style={{color:"var(--green)"}}>Budget: ${myTeam.faab}</span>
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+                  <button onClick={()=>setBid(b=>Math.max(0,b-1))} style={{width:36,height:36,borderRadius:10,border:"1px solid var(--border2)",background:"var(--surf2)",color:"var(--text)",fontSize:18,cursor:"pointer"}}>-</button>
+                  <div style={{flex:1,textAlign:"center",fontFamily:"var(--fh)",fontSize:40,color:"var(--green)"}}>${bid}</div>
+                  <button onClick={()=>setBid(b=>Math.min(myTeam.faab,b+1))} style={{width:36,height:36,borderRadius:10,border:"1px solid var(--border2)",background:"var(--surf2)",color:"var(--text)",fontSize:18,cursor:"pointer"}}>+</button>
+                </div>
+                <input type="range" min={0} max={myTeam.faab} value={bid} onChange={e=>setBid(+e.target.value)}/>
+              </div>
+            )}
+
+            <div style={{marginBottom:16}}>
+              <div style={{fontSize:11,fontFamily:"var(--fd)",fontWeight:700,color:"var(--text2)",marginBottom:6}}>CONTRACT LENGTH</div>
+              <div style={{display:"flex",gap:5}}>
+                {Array.from({length:settings.maxContractYears}).map((_,i)=>(
+                  <button key={i+1} onClick={()=>setYrs(i+1)} style={{flex:1,padding:"9px 0",borderRadius:8,border:"1px solid",borderColor:yrs===i+1?"var(--green)":"var(--border2)",background:yrs===i+1?"rgba(0,229,138,.12)":"var(--surf2)",color:yrs===i+1?"var(--green)":"var(--text3)",fontFamily:"var(--fd)",fontSize:14,fontWeight:900,cursor:"pointer"}}>
+                  {i+1}YR
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{padding:"10px 14px",borderRadius:10,background:"rgba(0,229,138,.06)",border:"1px solid rgba(0,229,138,.15)",marginBottom:14,fontSize:12}}>
+              <strong style={{color:"var(--green)"}}>Cap Impact:</strong> <span style={{color:"var(--text)"}}>Salary: ${bid}/yr | {yrs}yr total: ${bid*yrs}</span>
+              {bid + capUsed > settings.salaryCap && <div style={{color:"var(--red)",marginTop:4}}>\u26A0 Exceeds salary cap!</div>}
+            </div>
+
+            <button className="btn-p" style={{width:"100%"}} onClick={()=>{submitWaiverBid(player.id,bid,yrs);onClose()}} disabled={bid+capUsed>settings.salaryCap}>
+              SUBMIT {settings.waiverType==="faab"?"FAAB":"WAIVER"} CLAIM
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // EXTENSION MODAL
+  // ═══════════════════════════════════════════════════════════════════════
+  function ExtensionModal({ player, onClose }) {
+    const [yrs, setYrs] = useState(3);
+    const raise = settings.salaryEscalator ? Math.round(player.salary * (settings.escalatorPct/100)) : 0;
+    const newSalary = player.salary + raise;
+    return (
+      <div className="modal-scrim" onClick={onClose}>
+        <div className="modal-sheet" onClick={e=>e.stopPropagation()} style={{maxHeight:"55vh"}}>
+          <div className="drag-handle"/>
+          <div style={{padding:"16px 20px"}}>
+            <div style={{fontFamily:"var(--fh)",fontSize:24,marginBottom:8}}>EXTEND {player.name.toUpperCase()}</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+              <div className="gc" style={{padding:"10px 12px"}}><div style={{fontSize:10,color:"var(--text3)",fontFamily:"var(--fd)",fontWeight:700}}>CURRENT</div><div style={{fontSize:18,fontFamily:"var(--fd)",fontWeight:900,color:"var(--text)"}}>${player.salary}/yr</div></div>
+              <div className="gc" style={{padding:"10px 12px"}}><div style={{fontSize:10,color:"var(--text3)",fontFamily:"var(--fd)",fontWeight:700}}>NEW SALARY</div><div style={{fontSize:18,fontFamily:"var(--fd)",fontWeight:900,color:"var(--green)"}}>${newSalary}/yr</div></div>
+            </div>
+            <div style={{marginBottom:14}}>
+              <div style={{fontSize:11,fontFamily:"var(--fd)",fontWeight:700,color:"var(--text2)",marginBottom:6}}>EXTENSION LENGTH</div>
+              <div style={{display:"flex",gap:5}}>
+                {[2,3,4,5].filter(y=>y<=settings.maxContractYears).map(y=>(
+                  <button key={y} onClick={()=>setYrs(y)} style={{flex:1,padding:"9px 0",borderRadius:8,border:"1px solid",borderColor:yrs===y?"var(--gold)":"var(--border2)",background:yrs===y?"rgba(240,192,64,.12)":"var(--surf2)",color:yrs===y?"var(--gold)":"var(--text3)",fontFamily:"var(--fd)",fontSize:14,fontWeight:900,cursor:"pointer"}}>{y}YR</button>
+                ))}
+              </div>
+            </div>
+            <div style={{padding:"10px 14px",borderRadius:10,background:"rgba(240,192,64,.06)",border:"1px solid rgba(240,192,64,.15)",marginBottom:14,fontSize:12}}>
+              <strong style={{color:"var(--gold)"}}>Total Value:</strong> {yrs}yr / ${newSalary*yrs} total
+              {settings.salaryEscalator && <span style={{color:"var(--text2)",marginLeft:8}}>({settings.escalatorPct}% escalator applied)</span>}
+            </div>
+            <button className="btn-p" style={{width:"100%",background:"linear-gradient(135deg,var(--gold),#c09830)"}} onClick={()=>{extendPlayer(player.id,yrs,newSalary);onClose()}}>
+              SIGN EXTENSION \u2014 {yrs}YR / ${newSalary}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // HOME SCREEN
+  // ═══════════════════════════════════════════════════════════════════════
+  function HomeScreen() {
+    return (
+      <div className="rise" style={{padding:"0 16px 100px"}}>
+        <div style={{padding:"24px 0 16px",display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+          <div>
+            <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:4}}><div className="live-dot"/><span style={{fontSize:11,fontFamily:"var(--fd)",fontWeight:800,letterSpacing:".12em",color:"var(--text2)"}}>WEEK 11 | LIVE</span></div>
+            <div style={{fontFamily:"var(--fh)",fontSize:34,letterSpacing:".02em",lineHeight:1}}>{settings.leagueName.toUpperCase()}</div>
+            <div style={{fontSize:13,color:"var(--text2)",marginTop:4}}>{myTeam.record} | {myTeam.pts} pts | Season 3</div>
+          </div>
+          <div style={{position:"relative"}}>
+            <div style={{width:48,height:48,borderRadius:14,background:"var(--surf2)",border:"1px solid var(--border)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>{myTeam.logo}</div>
+            {(trades.filter(t=>t.status==="pending").length>0 || waiverClaims.filter(c=>c.status==="pending").length>0) && <div className="notif-dot"/>}
+          </div>
+        </div>
+
+        {/* Cap Summary */}
+        <div className="gc" style={{padding:"14px 16px",marginBottom:12}}>
+          <CapBar used={capUsed} total={settings.salaryCap} label/>
+          <div style={{display:"flex",justifyContent:"space-between",marginTop:10}}>
+            {[["AVAILABLE",`$${capLeft}`,"var(--green)"],["USED",`$${capUsed}`,"var(--text)"],["DEAD",`$${deadCapTotal}`,"var(--red)"],settings.waiverType==="faab"?["FAAB",`$${myTeam.faab}`,"var(--amber)"]:null].filter(Boolean).map(([l,v,c])=>(
+              <div key={l} style={{textAlign:"center"}}>
+                <div style={{fontSize:16,fontFamily:"var(--fd)",fontWeight:900,color:c}}>{v}</div>
+                <div style={{fontSize:9,fontFamily:"var(--fd)",fontWeight:800,letterSpacing:".12em",color:"var(--text3)"}}>{l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Team Window + Co-Owners */}
+        {settings.teamWindowDeclaration && (
+          <div className="gc" style={{padding:"10px 16px",marginBottom:12}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <Pill bg={myTeam.window==="contending"?"rgba(0,229,138,.12)":myTeam.window==="rebuilding"?"rgba(255,61,87,.12)":"rgba(255,176,32,.12)"} col={myTeam.window==="contending"?"var(--green)":myTeam.window==="rebuilding"?"var(--red)":"var(--amber)"} sz={11}>{myTeam.window?.toUpperCase()}</Pill>
+              <span style={{fontSize:12,color:"var(--text2)"}}>Team Window</span>
+              {settings.gmRating && <span style={{marginLeft:"auto",fontSize:14,fontFamily:"var(--fd)",fontWeight:900,color:"var(--green)"}}>{myTeam.gmRating} <span style={{fontSize:10,color:"var(--text3)"}}>GM</span></span>}
+            </div>
+            {settings.coOwners && (
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:8,paddingTop:8,borderTop:"1px solid var(--border)"}}>
+                <div style={{fontSize:11,color:"var(--text2)"}}>Owners: {myTeam.owners.join(", ")}</div>
+                <button className="btn-g" style={{fontSize:9,padding:"3px 10px"}} onClick={()=>setModal({type:"coowner",teamId:"t1"})}>MANAGE</button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Quick Actions */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:12}}>
+          <button className="gc hov" style={{padding:"14px 8px",textAlign:"center",border:"1px solid var(--border)",cursor:"pointer"}} onClick={()=>setScreen("trades")}>
+            <div style={{fontSize:20,marginBottom:4}}>{"\u{1F504}"}</div>
+            <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text2)"}}>TRADES</div>
+            {trades.filter(t=>t.status==="pending").length>0 && <Pill bg="rgba(255,61,87,.15)" col="var(--red)" sz={9}>{trades.filter(t=>t.status==="pending").length}</Pill>}
+          </button>
+          <button className="gc hov" style={{padding:"14px 8px",textAlign:"center",border:"1px solid var(--border)",cursor:"pointer"}} onClick={()=>setScreen("waivers")}>
+            <div style={{fontSize:20,marginBottom:4}}>{"\u{1F4B0}"}</div>
+            <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text2)"}}>WAIVERS</div>
+            {waiverClaims.filter(c=>c.status==="pending").length>0 && <Pill bg="rgba(255,176,32,.15)" col="var(--amber)" sz={9}>{waiverClaims.filter(c=>c.status==="pending").length}</Pill>}
+          </button>
+          <button className="gc hov" style={{padding:"14px 8px",textAlign:"center",border:"1px solid var(--border)",cursor:"pointer"}} onClick={()=>setScreen("draft")}>
+            <div style={{fontSize:20,marginBottom:4}}>{"\u{1F3AF}"}</div>
+            <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text2)"}}>DRAFT</div>
+          </button>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:12}}>
+          {settings.weeklyCommishReport && (
+            <button className="gc hov" style={{padding:"12px 8px",textAlign:"center",border:"1px solid var(--border)",cursor:"pointer"}} onClick={()=>setModal({type:"commishReport"})}>
+              <div style={{fontSize:16,marginBottom:2}}>{"\u{1F4F0}"}</div>
+              <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text2)"}}>WEEKLY REPORT</div>
+            </button>
+          )}
+          <button className="gc hov" style={{padding:"12px 8px",textAlign:"center",border:"1px solid var(--border)",cursor:"pointer"}} onClick={()=>setScreen("commish")}>
+            <div style={{fontSize:16,marginBottom:2}}>{"\u2699\uFE0F"}</div>
+            <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text2)"}}>SETTINGS</div>
+          </button>
+        </div>
+
+        {/* Pending Actions */}
+        {(trades.filter(t=>t.status==="pending").length > 0 || waiverClaims.filter(c=>c.status==="pending").length > 0) && (
+          <div style={{marginBottom:12}}>
+            <SectionHead>PENDING ACTIONS</SectionHead>
+            {trades.filter(t=>t.status==="pending").map(t=>(
+              <div key={t.id} className="gc" style={{padding:"12px 16px",marginBottom:6,borderLeft:"3px solid var(--blue)"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div>
+                    <div style={{fontSize:12,fontWeight:600}}>Trade with {t.team2Name}</div>
+                    <div style={{fontSize:11,color:"var(--text2)"}}>Votes: {t.votes.for}/{t.votes.needed}</div>
+                  </div>
+                  {t.grade && <div className="grade-badge" style={{width:36,height:36,fontSize:20,background:`${({["A+"]:"#00e58a",A:"#00e58a",B:"#ffb020",C:"#ff9500",D:"#ff3d57"})[t.grade.grade]||"#7a90a8"}18`,color:({["A+"]:"#00e58a",A:"#00e58a",B:"#ffb020",C:"#ff9500",D:"#ff3d57"})[t.grade.grade]||"#7a90a8",borderRadius:10}}>{t.grade.grade}</div>}
+                  <button className="btn-p" style={{padding:"6px 14px",fontSize:11}} onClick={()=>executeTrade(t.id)}>EXECUTE</button>
+                </div>
+              </div>
+            ))}
+            {waiverClaims.filter(c=>c.status==="pending").map(c=>(
+              <div key={c.id} className="gc" style={{padding:"12px 16px",marginBottom:6,borderLeft:"3px solid var(--amber)"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div>
+                    <div style={{fontSize:12,fontWeight:600}}>${c.amount} bid on {c.playerName}</div>
+                    <div style={{fontSize:11,color:"var(--text2)"}}>{c.contractYrs}yr contract</div>
+                  </div>
+                  <div style={{display:"flex",gap:6}}>
+                    <button className="btn-p" style={{padding:"6px 12px",fontSize:11}} onClick={()=>processWaiver(c.id)}>PROCESS</button>
+                    <button className="btn-d" style={{padding:"6px 12px",fontSize:11}} onClick={()=>setWaiverClaims(wc=>wc.filter(x=>x.id!==c.id))}>CANCEL</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Roster Quick View */}
+        <SectionHead right={<button className="btn-g" style={{padding:"4px 12px",fontSize:11}} onClick={()=>setScreen("roster")}>Full Roster</button>}>MY STARTERS</SectionHead>
+        <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:12}}>
+          {myRoster.filter(p=>!["BN","IR","TS"].includes(p.slot)).slice(0,5).map(p=>(
+            <div key={p.id} className="gc hov" style={{padding:"10px 14px",display:"flex",alignItems:"center",gap:10}} onClick={()=>setModal({type:"player",player:p})}>
+              <Pill bg={PC(p.pos)+"22"} col={PC(p.pos)} sz={10}>{p.pos}</Pill>
+              <span style={{flex:1,fontSize:13,fontWeight:600}}>{p.name}</span>
+              <Pips total={p.contract} left={p.left}/>
+              <span style={{fontSize:11,color:"var(--green)",fontFamily:"var(--fd)",fontWeight:900}}>${p.salary}</span>
+              <div style={{fontSize:16,fontFamily:"var(--fd)",fontWeight:900}}>{p.pts[0]>0?p.pts[0]:"--"}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Transaction Log */}
+        {transactionLog.length > 0 && (
+          <>
+            <SectionHead>RECENT TRANSACTIONS</SectionHead>
+            <div className="gc" style={{overflow:"hidden",marginBottom:12}}>
+              {transactionLog.slice(0,5).map((t,i)=>(
+                <div key={t.id} style={{padding:"10px 16px",borderBottom:i<4?"1px solid var(--border)":"none",display:"flex",gap:10,alignItems:"center"}}>
+                  <Pill bg="var(--surf3)" col="var(--text2)" sz={9}>{t.action}</Pill>
+                  <span style={{fontSize:12,flex:1}}>{t.detail}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Standings */}
+        <SectionHead right={<button className="btn-g" style={{padding:"4px 12px",fontSize:11}} onClick={()=>setScreen("league")}>View All</button>}>STANDINGS</SectionHead>
+        <div className="gc" style={{overflow:"hidden"}}>
+          {teams.slice(0,4).map((t,i)=>(
+            <div key={t.id} style={{display:"flex",alignItems:"center",gap:10,padding:"11px 16px",borderBottom:i<3?"1px solid var(--border)":"none",background:t.me||t.id==="t1"?"rgba(0,229,138,0.03)":"transparent"}}>
+              <span style={{width:20,textAlign:"center",fontSize:14,fontFamily:"var(--fd)",fontWeight:900,color:i===0?"var(--green)":"var(--text2)"}}>{i+1}</span>
+              <span style={{fontSize:18}}>{t.logo}</span>
+              <div style={{flex:1}}>
+                <span style={{fontSize:13,fontWeight:t.id==="t1"?700:400}}>{t.name}</span>
+                {settings.teamWindowDeclaration && <Pill bg="var(--surf3)" col="var(--text3)" sz={8}>{t.window}</Pill>}
+              </div>
+              <span style={{fontSize:12,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text2)"}}>{t.record}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // ROSTER SCREEN
+  // ═══════════════════════════════════════════════════════════════════════
+  function RosterScreen() {
+    const [filter, setFilter] = useState("all");
+    const list = filter==="all" ? myRoster : myRoster.filter(p=>p.pos===filter);
+    return (
+      <div className="rise" style={{padding:"20px 16px 100px"}}>
+        <div style={{fontFamily:"var(--fh)",fontSize:32,marginBottom:4}}>MY ROSTER</div>
+        <div style={{fontSize:12,color:"var(--text2)",marginBottom:14}}>{myRoster.length} players | ${capUsed} cap used | ${capLeft} available</div>
+        <div className="gc" style={{padding:"14px 16px",marginBottom:12}}><CapBar used={capUsed} total={settings.salaryCap} label/></div>
+        <div style={{display:"flex",gap:6,marginBottom:12,overflowX:"auto"}} className="no-scroll">
+          {["all","QB","RB","WR","TE"].map(f=>(
+            <button key={f} onClick={()=>setFilter(f)} style={{flexShrink:0,padding:"5px 14px",borderRadius:8,border:"none",fontFamily:"var(--fd)",fontSize:12,fontWeight:800,cursor:"pointer",background:filter===f?"var(--green)":"var(--surf2)",color:filter===f?"#000":"var(--text2)"}}>{f.toUpperCase()}</button>
+          ))}
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+          {list.map(p=>{
+            const hit = p.slot==="TS" ? Math.round(p.salary*.25) : p.salary;
+            const dead = Math.max(0,(p.left-1)*Math.round(p.salary*(settings.deadCapPct/100)));
+            return (
+              <div key={p.id} className="gc" style={{padding:"12px 14px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}} onClick={()=>setModal({type:"player",player:p})} className="hov">
+                  <Pill bg={PC(p.pos)+"22"} col={PC(p.pos)} sz={10}>{p.pos}</Pill>
+                  <div style={{flex:1}}>
+                    <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
+                      <span style={{fontSize:14,fontWeight:600}}>{p.name}</span>
+                      {p.tagged && <Pill bg="rgba(255,176,32,.14)" col="var(--amber)" sz={9}>TAGGED</Pill>}
+                      {p.rookie && <Pill bg="rgba(59,142,255,.15)" col="var(--blue)" sz={9}>R</Pill>}
+                      {p.status==="ir" && <Pill bg="rgba(255,61,87,.15)" col="var(--red)" sz={9}>IR</Pill>}
+                    </div>
+                    <div style={{fontSize:11,color:"var(--text2)"}}>{p.team} | {p.slot} | <Pips total={p.contract} left={p.left}/></div>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <div style={{fontSize:17,fontFamily:"var(--fd)",fontWeight:900,color:"var(--green)"}}>${hit}</div>
+                    <div style={{fontSize:10,color:"var(--text3)"}}>{p.pts[0]>0?`${p.pts[0]} pts`:"--"}</div>
+                  </div>
+                </div>
+                {/* Action buttons */}
+                <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                  {settings.tradeSystem && <button className="btn-g" style={{fontSize:10,padding:"5px 10px"}} onClick={()=>setModal({type:"trade",teamId:"t2"})}>{"\u{1F504}"} Trade</button>}
+                  {settings.tradeBlock && <button className="btn-g" style={{fontSize:10,padding:"5px 10px"}} onClick={()=>addToTradeBlock(p.id,"Open to offers")}>{"\u{1F6D2}"} Block</button>}
+                  {settings.extensions && p.ext && !p.tagged && <button className="btn-g" style={{fontSize:10,padding:"5px 10px",color:"var(--gold)",borderColor:"rgba(240,192,64,.3)"}} onClick={()=>setModal({type:"extend",player:p})}>{"\u{1F4DD}"} Extend</button>}
+                  {settings.franchiseTag && p.left===0 && !p.tagged && <button className="btn-g" style={{fontSize:10,padding:"5px 10px",color:"var(--amber)",borderColor:"rgba(255,176,32,.3)"}} onClick={()=>franchiseTag(p.id)}>{"\u{1F3F7}\uFE0F"} Tag</button>}
+                  {settings.amnestyClause && myTeam.amnestiesUsed < settings.amnestiesPerSeason && <button className="btn-g" style={{fontSize:10,padding:"5px 10px",color:"var(--cyan)",borderColor:"rgba(0,212,255,.3)"}} onClick={()=>{if(window.confirm(`Amnesty ${p.name}? No dead cap.`))amnestyCut(p.id)}}>{"\u2728"} Amnesty</button>}
+                  <button className="btn-d" style={{fontSize:10,padding:"5px 10px"}} onClick={()=>{if(window.confirm(`Cut ${p.name}? Dead cap: $${dead}`))cutPlayer(p.id)}}>{"\u2702\uFE0F"} Cut{dead>0?` ($${dead})`:""}</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // TRADES SCREEN
+  // ═══════════════════════════════════════════════════════════════════════
+  function TradesScreen() {
+    const [tab, setTab] = useState("new");
+    return (
+      <div className="rise" style={{padding:"20px 16px 100px"}}>
+        <div style={{fontFamily:"var(--fh)",fontSize:32,marginBottom:14}}>TRADE CENTER</div>
+        <div className="tab-row" style={{marginBottom:14}}>
+          {[["new","New Trade"],["pending","Pending"],["block","Trade Block"],["history","History"]].map(([id,label])=>(
+            <button key={id} className={`tab-btn ${tab===id?"tab-btn-on":"tab-btn-off"}`} onClick={()=>setTab(id)}>{label}</button>
+          ))}
+        </div>
+
+        {tab==="new" && (
+          <div>
+            <SectionHead>SELECT TRADE PARTNER</SectionHead>
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              {teams.filter(t=>t.id!=="t1").map(t=>(
+                <div key={t.id} className="gc hov" style={{padding:"14px 16px",display:"flex",alignItems:"center",gap:12}} onClick={()=>setModal({type:"trade",teamId:t.id})}>
+                  <span style={{fontSize:24}}>{t.logo}</span>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:14,fontWeight:600}}>{t.name}</div>
+                    <div style={{fontSize:11,color:"var(--text2)"}}>{t.owners.join(" & ")} | {t.record} | Cap: ${t.cap}</div>
+                  </div>
+                  {settings.teamWindowDeclaration && <Pill bg={t.window==="rebuilding"?"rgba(255,61,87,.12)":"rgba(0,229,138,.12)"} col={t.window==="rebuilding"?"var(--red)":"var(--green)"} sz={9}>{t.window?.toUpperCase()}</Pill>}
+                  <span style={{fontSize:18,color:"var(--text3)"}}>{"\u2192"}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {tab==="pending" && (
+          <div>
+            {trades.filter(t=>t.status==="pending").length===0 && <div style={{textAlign:"center",padding:40,color:"var(--text3)"}}>No pending trades</div>}
+            {trades.filter(t=>t.status==="pending").map(t=>(
+              <div key={t.id} className="gc" style={{padding:"16px",marginBottom:8}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+                  <div style={{fontSize:14,fontWeight:600}}>Trade with {t.team2Name}</div>
+                  {t.grade && <div style={{fontFamily:"var(--fh)",fontSize:24,color:({["A+"]:"#00e58a",A:"#00e58a",B:"#ffb020",C:"#ff9500",D:"#ff3d57"})[t.grade.grade]}}>{t.grade.grade}</div>}
+                </div>
+                <div style={{display:"flex",gap:8,marginBottom:10}}>
+                  <div style={{flex:1,padding:8,borderRadius:8,background:"rgba(0,229,138,.04)"}}>
+                    <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--green)",marginBottom:4}}>YOU SEND</div>
+                    {t.team1Players.map(id=>{const p=roster.find(x=>x.id===id);return p?<div key={id} style={{fontSize:11,marginBottom:2}}>{p.name} (${p.salary})</div>:null})}
+                    {t.team1Picks.map(pk=><div key={pk} style={{fontSize:11,color:"var(--text2)"}}>Pick: {pk}</div>)}
+                  </div>
+                  <div style={{flex:1,padding:8,borderRadius:8,background:"rgba(59,142,255,.04)"}}>
+                    <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--blue)",marginBottom:4}}>YOU GET</div>
+                    {t.team2Players.map(id=>{const p=[...roster,...OPPONENT_ROSTERS].find(x=>x.id===id);return p?<div key={id} style={{fontSize:11,marginBottom:2}}>{p.name} (${p.salary})</div>:null})}
+                    {t.team2Picks.map(pk=><div key={pk} style={{fontSize:11,color:"var(--text2)"}}>Pick: {pk}</div>)}
+                  </div>
+                </div>
+                {settings.tradeVoting && <div style={{fontSize:11,color:"var(--text2)",marginBottom:8}}>Votes: {t.votes.for}/{t.votes.needed} needed</div>}
+                <div style={{display:"flex",gap:8}}>
+                  <button className="btn-p" style={{flex:1,fontSize:12}} onClick={()=>executeTrade(t.id)}>EXECUTE</button>
+                  <button className="btn-d" style={{flex:1,fontSize:12}} onClick={()=>setTrades(ts=>ts.filter(x=>x.id!==t.id))}>CANCEL</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {tab==="block" && settings.tradeBlock && (
+          <div>
+            {tradeBlock.length===0 && <div style={{textAlign:"center",padding:40,color:"var(--text3)"}}>No players on the trade block.<br/>Add players from your roster.</div>}
+            {tradeBlock.map((tb,i)=>(
+              <div key={i} className="gc" style={{padding:"12px 16px",marginBottom:6,display:"flex",alignItems:"center",gap:10}}>
+                <Pill bg={PC(tb.pos)+"22"} col={PC(tb.pos)} sz={10}>{tb.pos}</Pill>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:13,fontWeight:600}}>{tb.playerName}</div>
+                  <div style={{fontSize:11,color:"var(--text2)"}}>{tb.team} | ${tb.salary} | {tb.left}yr left</div>
+                </div>
+                <Pill bg="var(--surf3)" col="var(--text2)" sz={9}>{tb.askingPrice}</Pill>
+                <button className="btn-d" style={{fontSize:10,padding:"4px 8px"}} onClick={()=>setTradeBlock(t=>t.filter((_,j)=>j!==i))}>{"\u2716"}</button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {tab==="history" && (
+          <div>
+            {trades.filter(t=>t.status==="completed").length===0 && <div style={{textAlign:"center",padding:40,color:"var(--text3)"}}>No completed trades yet</div>}
+            {trades.filter(t=>t.status==="completed").map(t=>(
+              <div key={t.id} className="gc" style={{padding:"12px 16px",marginBottom:6,borderLeft:"3px solid var(--green)"}}>
+                <div style={{fontSize:13,fontWeight:600}}>{t.team1Name} \u2194 {t.team2Name}</div>
+                {t.grade && <span style={{fontSize:11,color:"var(--text2)"}}>Grade: {t.grade.grade} | {t.grade.fairness}</span>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // WAIVERS SCREEN
+  // ═══════════════════════════════════════════════════════════════════════
+  function WaiversScreen() {
+    const [filter, setFilter] = useState("all");
+    const list = filter==="all" ? freeAgents : freeAgents.filter(p=>p.pos===filter);
+    return (
+      <div className="rise" style={{padding:"20px 16px 100px"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+          <div>
+            <div style={{fontFamily:"var(--fh)",fontSize:32}}>WAIVERS</div>
+            <div style={{fontSize:12,color:"var(--text2)"}}>{settings.waiverType==="faab"?"FAAB Auction":"Rolling Priority"} | {freeAgents.length} available</div>
+          </div>
+          {settings.waiverType==="faab" && <div style={{textAlign:"right"}}><div style={{fontSize:22,fontFamily:"var(--fd)",fontWeight:900,color:"var(--amber)"}}>${myTeam.faab}</div><div style={{fontSize:9,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text3)"}}>FAAB LEFT</div></div>}
+        </div>
+        <div style={{display:"flex",gap:6,marginBottom:12,overflowX:"auto"}} className="no-scroll">
+          {["all","QB","RB","WR","TE"].map(f=>(
+            <button key={f} onClick={()=>setFilter(f)} style={{flexShrink:0,padding:"5px 14px",borderRadius:8,border:"none",fontFamily:"var(--fd)",fontSize:12,fontWeight:800,cursor:"pointer",background:filter===f?"var(--amber)":"var(--surf2)",color:filter===f?"#000":"var(--text2)"}}>{f.toUpperCase()}</button>
+          ))}
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+          {list.map(p=>{
+            const avg = p.pts.filter(x=>x>0).reduce((a,b)=>a+b,0)/Math.max(1,p.pts.filter(x=>x>0).length);
+            const hasClaim = waiverClaims.some(c=>c.playerId===p.id&&c.status==="pending");
+            return (
+              <div key={p.id} className="gc" style={{padding:"12px 14px",display:"flex",alignItems:"center",gap:10,borderLeft:hasClaim?"3px solid var(--amber)":"3px solid transparent"}}>
+                <Pill bg={PC(p.pos)+"22"} col={PC(p.pos)} sz={10}>{p.pos}</Pill>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:14,fontWeight:600}}>{p.name}</div>
+                  <div style={{fontSize:11,color:"var(--text2)"}}>{p.team} | {avg.toFixed(1)} PPG avg</div>
+                </div>
+                <MiniSparkline data={p.pts.filter(x=>x>0)} width={36} height={16} color={PC(p.pos)}/>
+                {hasClaim ? (
+                  <Pill bg="rgba(255,176,32,.12)" col="var(--amber)" sz={10}>BID PLACED</Pill>
+                ) : (
+                  <button className="btn-p" style={{padding:"6px 14px",fontSize:12}} onClick={()=>setModal({type:"waiver",player:p})}>BID</button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // COMMISSIONER SETTINGS SCREEN
+  // ═══════════════════════════════════════════════════════════════════════
+  function CommishScreen() {
+    const [tab, setTab] = useState("general");
+    const update = (key, val) => setSettings(s=>({...s, [key]:val}));
+
+    const sections = {
+      general: [
+        {type:"text",key:"leagueName",label:"League Name"},
+        {type:"number",key:"salaryCap",label:"Salary Cap ($)"},
+        {type:"number",key:"maxContractYears",label:"Max Contract Years"},
+        {type:"number",key:"rookieContractLength",label:"Rookie Contract Length"},
+        {type:"number",key:"deadCapPct",label:"Dead Cap Penalty (%)"},
+        {type:"toggle",key:"salaryEscalator",label:"Salary Escalators"},
+        {type:"number",key:"escalatorPct",label:"Escalator %",show:settings.salaryEscalator},
+        {type:"toggle",key:"nflCapMirror",label:"Mirror Real NFL Cap (Phase 3)"},
+      ],
+      contracts: [
+        {type:"toggle",key:"franchiseTag",label:"Franchise Tags"},
+        {type:"toggle",key:"extensions",label:"Contract Extensions"},
+        {type:"toggle",key:"amnestyClause",label:"Amnesty Clause"},
+        {type:"number",key:"amnestiesPerSeason",label:"Amnesty Clauses Per Season",show:settings.amnestyClause},
+      ],
+      trades: [
+        {type:"toggle",key:"tradeSystem",label:"Trading Enabled"},
+        {type:"toggle",key:"tradeVoting",label:"League Vote on Trades",show:settings.tradeSystem},
+        {type:"number",key:"tradeVotesNeeded",label:"Votes Needed to Pass",show:settings.tradeVoting},
+        {type:"number",key:"tradeDeadlineWeek",label:"Trade Deadline Week",show:settings.tradeSystem},
+        {type:"toggle",key:"multiTeamTrades",label:"Multi-Team Trades (Phase 2)"},
+        {type:"toggle",key:"aiTradeGrades",label:"AI Trade Grades"},
+        {type:"toggle",key:"tradeBlock",label:"Trade Block Marketplace"},
+        {type:"toggle",key:"pickTrading",label:"Draft Pick Trading"},
+        {type:"number",key:"futurePickYears",label:"Future Pick Years Tradeable",show:settings.pickTrading},
+        {type:"toggle",key:"tradePushNotifications",label:"Trade Deadline Push Alerts (Phase 3)"},
+        {type:"toggle",key:"pickValueTracker",label:"Pick Value Tracker (Phase 2)"},
+      ],
+      waivers: [
+        {type:"select",key:"waiverType",label:"Waiver Type",options:[["faab","FAAB Auction"],["rolling","Rolling Priority"],["reverse","Reverse Standings"]]},
+        {type:"number",key:"faabBudget",label:"FAAB Budget ($)",show:settings.waiverType==="faab"},
+        {type:"toggle",key:"faabCountsVsCap",label:"FAAB Counts vs Cap",show:settings.waiverType==="faab"},
+      ],
+      roster: [
+        {type:"toggle",key:"taxiSquad",label:"Taxi Squad"},
+        {type:"number",key:"taxiSquadSize",label:"Taxi Squad Slots",show:settings.taxiSquad},
+        {type:"toggle",key:"taxiPoaching",label:"Taxi Squad Poaching",show:settings.taxiSquad},
+        {type:"number",key:"taxiPoachingWindow",label:"Poach Window (hours)",show:settings.taxiPoaching},
+        {type:"toggle",key:"superflex",label:"Superflex / 2QB"},
+        {type:"toggle",key:"idp",label:"IDP (Individual Defensive Players) (Phase 3)"},
+        {type:"toggle",key:"devy",label:"Devy League Integration (Phase 3)"},
+      ],
+      draft: [
+        {type:"toggle",key:"rookieDraft",label:"Rookie Draft"},
+        {type:"select",key:"rookieDraftType",label:"Draft Type",options:[["linear","Linear"],["auction","Auction"]]},
+        {type:"toggle",key:"draftLottery",label:"Draft Lottery"},
+        {type:"toggle",key:"lotteryWeights",label:"Weighted Lottery (anti-tank)"},
+      ],
+      social: [
+        {type:"toggle",key:"leagueChat",label:"League Chat"},
+        {type:"toggle",key:"directMessages",label:"Direct Messages (DMs)"},
+        {type:"toggle",key:"coOwners",label:"Co-Ownership"},
+        {type:"number",key:"maxCoOwners",label:"Max Co-Owners Per Team",show:settings.coOwners},
+        {type:"toggle",key:"weeklyAwards",label:"Weekly Awards"},
+        {type:"toggle",key:"rivalryWeeks",label:"Rivalry Weeks"},
+        {type:"toggle",key:"bounties",label:"Bounties"},
+        {type:"toggle",key:"sidePots",label:"Weekly Side Pots"},
+        {type:"number",key:"sidePotsWeeklyAmount",label:"Side Pot Amount ($)",show:settings.sidePots},
+        {type:"toggle",key:"empireMode",label:"Empire Mode"},
+        {type:"number",key:"empireChampionships",label:"Championships for Reset",show:settings.empireMode},
+        {type:"toggle",key:"teamWindowDeclaration",label:"Team Window Declaration"},
+        {type:"toggle",key:"hallOfFame",label:"Hall of Fame / Trophy Room"},
+        {type:"toggle",key:"leagueHealthScore",label:"League Health Score"},
+        {type:"toggle",key:"weeklyCommishReport",label:"Auto Weekly Commish Report"},
+        {type:"toggle",key:"offseasonCalendar",label:"Offseason Calendar"},
+        {type:"toggle",key:"gmRating",label:"GM Rating / Reputation"},
+        {type:"toggle",key:"contentIntegration",label:"Content / Podcast Integration"},
+        {type:"toggle",key:"multiLeaguePortfolio",label:"Multi-League Portfolio"},
+      ],
+    };
+
+    return (
+      <div className="rise" style={{padding:"20px 16px 100px"}}>
+        <div style={{fontFamily:"var(--fh)",fontSize:32,marginBottom:4}}>COMMISSIONER</div>
+        <div style={{fontSize:12,color:"var(--text2)",marginBottom:14}}>League Settings & Feature Toggles</div>
+        <div className="tab-row" style={{marginBottom:14}}>
+          {[["general","General"],["contracts","Contracts"],["trades","Trades"],["waivers","Waivers"],["roster","Roster"],["draft","Draft"],["social","Social"]].map(([id,label])=>(
+            <button key={id} className={`tab-btn ${tab===id?"tab-btn-on":"tab-btn-off"}`} onClick={()=>setTab(id)} style={{fontSize:10,padding:"6px 2px"}}>{label}</button>
+          ))}
+        </div>
+        <div className="gc" style={{padding:"16px"}}>
+          {(sections[tab]||[]).filter(s=>s.show===undefined||s.show).map(s=>(
+            <div key={s.key}>
+              {s.type==="toggle" && <Toggle label={s.label} on={settings[s.key]} onToggle={()=>update(s.key,!settings[s.key])}/>}
+              {s.type==="number" && (
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0"}}>
+                  <span style={{fontSize:13,color:"var(--text)"}}>{s.label}</span>
+                  <input type="number" value={settings[s.key]} onChange={e=>update(s.key,+e.target.value)} style={{width:80,textAlign:"center",padding:"6px 8px",fontSize:14,fontFamily:"var(--fd)",fontWeight:900}}/>
+                </div>
+              )}
+              {s.type==="text" && (
+                <div style={{padding:"10px 0"}}>
+                  <div style={{fontSize:11,fontFamily:"var(--fd)",fontWeight:700,color:"var(--text2)",marginBottom:4}}>{s.label}</div>
+                  <input type="text" value={settings[s.key]} onChange={e=>update(s.key,e.target.value)}/>
+                </div>
+              )}
+              {s.type==="select" && (
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0"}}>
+                  <span style={{fontSize:13,color:"var(--text)"}}>{s.label}</span>
+                  <select value={settings[s.key]} onChange={e=>update(s.key,e.target.value)}>
+                    {s.options.map(([v,l])=><option key={v} value={v}>{l}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // LEAGUE SCREEN (expanded with Phase 2 tabs)
+  // ═══════════════════════════════════════════════════════════════════════
+  function LeagueScreen() {
+    const [tab, setTab] = useState("standings");
+    return (
+      <div className="rise" style={{padding:"20px 16px 100px"}}>
+        <div style={{fontFamily:"var(--fh)",fontSize:32,marginBottom:14}}>LEAGUE</div>
+        <div style={{display:"flex",gap:4,marginBottom:14,overflowX:"auto",paddingBottom:4}} className="no-scroll">
+          {[["standings","Standings"],["awards","Awards"],settings.hallOfFame&&["hof","Hall of Fame"],settings.leagueHealthScore&&["health","Health"],settings.offseasonCalendar&&["calendar","Calendar"]].filter(Boolean).map(([id,label])=>(
+            <button key={id} onClick={()=>setTab(id)} style={{flexShrink:0,padding:"6px 12px",borderRadius:8,border:"none",fontFamily:"var(--fd)",fontSize:11,fontWeight:800,cursor:"pointer",background:tab===id?"var(--green)":"var(--surf2)",color:tab===id?"#000":"var(--text2)",letterSpacing:".04em"}}>{label}</button>
+          ))}
+        </div>
+
+        {tab==="standings" && (
+          <div className="gc" style={{overflow:"hidden"}}>
+            <div style={{display:"grid",gridTemplateColumns:"28px 1fr 50px 50px 44px",gap:6,padding:"10px 14px",fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text3)",borderBottom:"1px solid var(--border)"}}>
+              <span>#</span><span>TEAM</span><span style={{textAlign:"right"}}>REC</span><span style={{textAlign:"right"}}>PTS</span><span style={{textAlign:"right"}}>CAP</span>
+            </div>
+            {teams.map((t,i)=>(
+              <div key={t.id} style={{display:"grid",gridTemplateColumns:"28px 1fr 50px 50px 44px",gap:6,padding:"12px 14px",alignItems:"center",borderBottom:i<teams.length-1?"1px solid var(--border)":"none",background:t.id==="t1"?"rgba(0,229,138,0.03)":"transparent"}}>
+                <span style={{fontSize:14,fontFamily:"var(--fd)",fontWeight:900,color:i===0?"var(--green)":"var(--text2)"}}>{i+1}</span>
+                <div style={{display:"flex",alignItems:"center",gap:8,overflow:"hidden"}}>
+                  <span style={{fontSize:18}}>{t.logo}</span>
+                  <div style={{overflow:"hidden"}}>
+                    <div style={{fontSize:12,fontWeight:t.id==="t1"?700:400,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{t.name}</div>
+                    <div style={{display:"flex",gap:4,alignItems:"center"}}>
+                      <Pill bg={t.streak.startsWith("W")?"rgba(0,229,138,.12)":"rgba(255,61,87,.12)"} col={t.streak.startsWith("W")?"var(--green)":"var(--red)"} sz={8}>{t.streak}</Pill>
+                      {settings.teamWindowDeclaration && <Pill bg="var(--surf3)" col="var(--text3)" sz={7}>{t.window}</Pill>}
+                    </div>
+                  </div>
+                </div>
+                <span style={{fontSize:12,fontFamily:"var(--fd)",fontWeight:700,color:"var(--text2)",textAlign:"right"}}>{t.record}</span>
+                <span style={{fontSize:12,fontFamily:"var(--fd)",fontWeight:700,textAlign:"right"}}>{t.pts}</span>
+                <span style={{fontSize:11,fontFamily:"var(--fd)",fontWeight:700,color:t.cap>230?"var(--red)":"var(--text2)",textAlign:"right"}}>${t.cap}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* WEEKLY AWARDS */}
+        {tab==="awards" && settings.weeklyAwards && (
+          <div>
+            {WEEKLY_AWARDS_DATA.map(wk=>(
+              <div key={wk.week} style={{marginBottom:16}}>
+                <SectionHead>WEEK {wk.week} AWARDS</SectionHead>
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {wk.awards.map((a,i)=>(
+                    <div key={i} className="gc pop-in" style={{padding:"12px 16px",display:"flex",alignItems:"center",gap:12,animationDelay:`${i*0.08}s`,opacity:0,animationFillMode:"forwards"}}>
+                      <div style={{fontSize:28,flexShrink:0}}>{a.icon}</div>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:a.color,letterSpacing:".1em",marginBottom:2}}>{a.type.toUpperCase()}</div>
+                        <div style={{fontSize:14,fontWeight:600}}>{a.team}</div>
+                        <div style={{fontSize:11,color:"var(--text2)"}}>{a.player ? a.player + " \u2014 " : ""}{a.value}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* HALL OF FAME */}
+        {tab==="hof" && settings.hallOfFame && (
+          <div>
+            <SectionHead>CHAMPIONSHIP BANNERS</SectionHead>
+            <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
+              {HALL_OF_FAME.champions.map((c,i)=>(
+                <div key={i} className="gc trophy-shine" style={{padding:"18px 20px",borderLeft:"3px solid var(--gold)",position:"relative",overflow:"hidden"}}>
+                  <div style={{position:"absolute",top:-10,right:-10,fontSize:60,opacity:0.06}}>{"\u{1F3C6}"}</div>
+                  <div style={{display:"flex",alignItems:"center",gap:12}}>
+                    <div style={{fontSize:40}}>{c.logo}</div>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--gold)",letterSpacing:".12em"}}>SEASON {c.season} \u2014 {c.year}</div>
+                      <div style={{fontFamily:"var(--fh)",fontSize:24,color:"var(--gold)",lineHeight:1.1}}>{c.team}</div>
+                      <div style={{fontSize:12,color:"var(--text2)",marginTop:2}}>{c.record} | {c.pts} pts | MVP: {c.mvp}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <SectionHead>ALL-TIME RECORDS</SectionHead>
+            <div className="gc" style={{overflow:"hidden",marginBottom:16}}>
+              {HALL_OF_FAME.records.map((r,i)=>(
+                <div key={i} style={{padding:"11px 16px",borderBottom:i<HALL_OF_FAME.records.length-1?"1px solid var(--border)":"none",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div>
+                    <div style={{fontSize:12,fontWeight:600}}>{r.record}</div>
+                    <div style={{fontSize:11,color:"var(--text2)"}}>{r.holder} | Season {r.season}{r.week ? " Wk "+r.week : ""}</div>
+                  </div>
+                  <div style={{fontSize:16,fontFamily:"var(--fd)",fontWeight:900,color:"var(--gold)"}}>{r.value}</div>
+                </div>
+              ))}
+            </div>
+
+            <SectionHead>ALL-TIME POINTS</SectionHead>
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              {HALL_OF_FAME.allTimePF.map((t,i)=>{
+                const maxPts = Math.max(...HALL_OF_FAME.allTimePF.map(x=>x.pts));
+                return (
+                  <div key={i} className="gc" style={{padding:"12px 16px"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}>
+                        <span style={{fontSize:16,fontFamily:"var(--fd)",fontWeight:900,color:i===0?"var(--gold)":"var(--text2)"}}>{i+1}</span>
+                        <span style={{fontSize:18}}>{t.logo}</span>
+                        <span style={{fontSize:13,fontWeight:600}}>{t.team}</span>
+                      </div>
+                      <span style={{fontSize:16,fontFamily:"var(--fd)",fontWeight:900}}>{t.pts.toLocaleString()}</span>
+                    </div>
+                    <div className="stat-meter"><div className="stat-meter-fill bar-grow" style={{"--target-w":`${(t.pts/maxPts)*100}%`,background:i===0?"linear-gradient(90deg,var(--gold),#c09830)":"linear-gradient(90deg,var(--surf3),var(--text3))"}}/></div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* LEAGUE HEALTH */}
+        {tab==="health" && settings.leagueHealthScore && (
+          <div>
+            <div className="gc" style={{padding:"20px",marginBottom:14,textAlign:"center"}}>
+              <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text3)",letterSpacing:".12em",marginBottom:6}}>LEAGUE HEALTH SCORE</div>
+              <div style={{fontSize:64,fontFamily:"var(--fh)",color:LEAGUE_HEALTH.overallScore>80?"var(--green)":LEAGUE_HEALTH.overallScore>60?"var(--amber)":"var(--red)",lineHeight:1}}>{LEAGUE_HEALTH.overallScore}</div>
+              <div style={{fontSize:12,color:"var(--text2)",marginTop:4}}>{LEAGUE_HEALTH.overallScore>80?"Excellent":"Needs Attention"} \u2014 {LEAGUE_HEALTH.overallScore}/100</div>
+            </div>
+
+            <SectionHead>METRICS</SectionHead>
+            <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:16}}>
+              {LEAGUE_HEALTH.metrics.map((m,i)=>(
+                <div key={i} className="gc" style={{padding:"12px 16px"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                    <span style={{fontSize:12,fontWeight:600}}>{m.name}</span>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}>
+                      <span style={{fontSize:9,color:m.trend==="up"?"var(--green)":m.trend==="down"?"var(--red)":"var(--text3)"}}>{m.trend==="up"?"\u2191":m.trend==="down"?"\u2193":"\u2192"}</span>
+                      <span style={{fontSize:14,fontFamily:"var(--fd)",fontWeight:900,color:m.score>80?"var(--green)":m.score>60?"var(--amber)":"var(--red)"}}>{m.score}</span>
+                    </div>
+                  </div>
+                  <div className="stat-meter"><div className="stat-meter-fill" style={{width:`${m.score}%`,background:m.score>80?"linear-gradient(90deg,var(--green),var(--green2))":m.score>60?"linear-gradient(90deg,var(--amber),#cc8800)":"linear-gradient(90deg,var(--red),#cc2244)"}}/></div>
+                  <div style={{fontSize:10,color:"var(--text3)",marginTop:4}}>{m.detail}</div>
+                </div>
+              ))}
+            </div>
+
+            {LEAGUE_HEALTH.dormantTeams.length > 0 && (
+              <>
+                <SectionHead>DORMANT TEAM ALERTS</SectionHead>
+                {LEAGUE_HEALTH.dormantTeams.map((dt,i)=>(
+                  <div key={i} className="gc" style={{padding:"12px 16px",marginBottom:6,borderLeft:`3px solid ${dt.concern==="medium"?"var(--amber)":"var(--text3)"}`}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <div>
+                        <div style={{fontSize:13,fontWeight:600}}>{dt.team}</div>
+                        <div style={{fontSize:11,color:"var(--text2)"}}>Last active: {dt.lastActive}</div>
+                      </div>
+                      <Pill bg={dt.concern==="medium"?"rgba(255,176,32,.12)":"var(--surf3)"} col={dt.concern==="medium"?"var(--amber)":"var(--text3)"} sz={9}>{dt.concern.toUpperCase()}</Pill>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* OFFSEASON CALENDAR */}
+        {tab==="calendar" && settings.offseasonCalendar && (
+          <div>
+            <SectionHead>OFFSEASON TIMELINE</SectionHead>
+            <div style={{position:"relative",paddingLeft:24}}>
+              <div className="timeline-line" style={{left:5}}/>
+              {OFFSEASON_CALENDAR.map((ev,i)=>(
+                <div key={i} style={{display:"flex",gap:16,marginBottom:16,position:"relative"}}>
+                  <div className={`timeline-dot ${ev.status==="active"?"timeline-dot-active":""}`} style={{marginTop:2,position:"absolute",left:-24}}/>
+                  <div className="gc" style={{flex:1,padding:"12px 16px",borderLeft:ev.status==="active"?"3px solid var(--green)":"3px solid transparent",background:ev.status==="active"?"rgba(0,229,138,0.04)":"transparent"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}>
+                        <span style={{fontSize:18}}>{ev.icon}</span>
+                        <div>
+                          <div style={{fontSize:13,fontWeight:700}}>{ev.event}</div>
+                          <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:ev.status==="active"?"var(--green)":"var(--text3)",letterSpacing:".08em"}}>{ev.date}</div>
+                        </div>
+                      </div>
+                      {ev.status==="active" && <Pill bg="rgba(0,229,138,.12)" col="var(--green)" sz={9}>ACTIVE</Pill>}
+                    </div>
+                    <div style={{fontSize:11,color:"var(--text2)",lineHeight:1.4}}>{ev.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // DRAFT SCREEN (Phase 2 - Rookie Draft + Lottery)
+  // ═══════════════════════════════════════════════════════════════════════
+  function DraftScreen() {
+    const [tab, setTab] = useState("board");
+    const [lotteryRunning, setLotteryRunning] = useState(false);
+    const [lotteryResults, setLotteryResults] = useState(null);
+    const [lotteryRevealIdx, setLotteryRevealIdx] = useState(-1);
+    const [draftedPlayers, setDraftedPlayers] = useState([]);
+    const [selectedRookie, setSelectedRookie] = useState(null);
+    const [draftContractYrs, setDraftContractYrs] = useState(settings.rookieContractLength);
+
+    const nonPlayoffTeams = teams.filter(t => {
+      const rec = t.record.split("-");
+      return parseInt(rec[1]) > parseInt(rec[0]);
+    }).sort((a,b) => parseInt(b.record.split("-")[1]) - parseInt(a.record.split("-")[1]));
+    const playoffTeams = teams.filter(t => !nonPlayoffTeams.find(x=>x.id===t.id)).sort((a,b) => b.pts - a.pts);
+
+    const runLottery = () => {
+      if (!settings.draftLottery) return;
+      setLotteryRunning(true);
+      setLotteryResults(null);
+      setLotteryRevealIdx(-1);
+
+      const pool = [...nonPlayoffTeams];
+      if (settings.lotteryWeights) {
+        // Weighted: worst team gets more chances
+        const weighted = [];
+        pool.forEach((t, i) => { for (let j = 0; j < pool.length - i; j++) weighted.push(t); });
+        const results = [];
+        const remaining = [...weighted];
+        const used = new Set();
+        while (results.length < pool.length && remaining.length > 0) {
+          const idx = Math.floor(Math.random() * remaining.length);
+          const pick = remaining[idx];
+          if (!used.has(pick.id)) { results.push(pick); used.add(pick.id); }
+          remaining.splice(idx, 1);
+        }
+        setTimeout(() => { setLotteryResults([...results, ...playoffTeams.reverse()]); setLotteryRunning(false); revealSequence([...results,...playoffTeams.reverse()].length); }, 2000);
+      } else {
+        const shuffled = pool.sort(() => Math.random() - 0.5);
+        setTimeout(() => { setLotteryResults([...shuffled,...playoffTeams.reverse()]); setLotteryRunning(false); revealSequence([...shuffled,...playoffTeams.reverse()].length); }, 2000);
+      }
+    };
+
+    const revealSequence = (count) => {
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => setLotteryRevealIdx(i), (i + 1) * 600);
+      }
+    };
+
+    const draftPlayer = (rookieId) => {
+      const rookie = ROOKIE_CLASS.find(r=>r.id===rookieId);
+      if (!rookie || draftedPlayers.includes(rookieId)) return;
+      const salary = Math.round(getPickValue(rookie.adp.toString().replace(".",".")) * 0.3) + 2;
+      setDraftedPlayers(d=>[...d, rookieId]);
+      setRoster(r=>[...r, {id:rookieId, name:rookie.name, pos:rookie.pos, team:rookie.team, salary, contract:draftContractYrs, left:draftContractYrs, slot:"BN", pts:[0,0,0,0,0], status:"active", rookie:true, owner:"t1", tagged:false}]);
+      logTransaction("ROOKIE DRAFTED", rookie.name + " \u2014 $" + salary + "/" + draftContractYrs + "yr");
+      addNotification("\u{1F3C8} Drafted " + rookie.name + " \u2014 $" + salary + "/" + draftContractYrs + "yr!", "green");
+      setSelectedRookie(null);
+    };
+
+    const availableRookies = ROOKIE_CLASS.filter(r => !draftedPlayers.includes(r.id));
+
+    return (
+      <div className="rise" style={{padding:"20px 16px 100px"}}>
+        <div style={{fontFamily:"var(--fh)",fontSize:32,marginBottom:14}}>DRAFT CENTER</div>
+        <div className="tab-row" style={{marginBottom:14}}>
+          {[["board","Rookie Board"],settings.draftLottery&&["lottery","Lottery"],["picks","My Picks"],["values","Pick Values"]].filter(Boolean).map(([id,label])=>(
+            <button key={id} className={`tab-btn ${tab===id?"tab-btn-on":"tab-btn-off"}`} onClick={()=>setTab(id)}>{label}</button>
+          ))}
+        </div>
+
+        {/* ROOKIE BOARD */}
+        {tab==="board" && (
+          <div>
+            <SectionHead right={<Pill bg="rgba(0,229,138,.12)" col="var(--green)" sz={10}>{availableRookies.length} AVAILABLE</Pill>}>2025 ROOKIE CLASS</SectionHead>
+            {availableRookies.map((r,i)=>(
+              <div key={r.id} className="gc hov" style={{padding:"12px 16px",marginBottom:6,display:"flex",alignItems:"center",gap:10,borderLeft:selectedRookie===r.id?"3px solid var(--green)":"3px solid transparent"}} onClick={()=>setSelectedRookie(selectedRookie===r.id?null:r.id)}>
+                <div style={{width:28,textAlign:"center",fontSize:14,fontFamily:"var(--fd)",fontWeight:900,color:i<3?"var(--green)":"var(--text2)"}}>{i+1}</div>
+                <Pill bg={PC(r.pos)+"22"} col={PC(r.pos)} sz={10}>{r.pos}</Pill>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:14,fontWeight:600}}>{r.name}</div>
+                  <div style={{fontSize:11,color:"var(--text2)"}}>ADP: {r.adp} | Comp: {r.comp}</div>
+                </div>
+                <div style={{textAlign:"right"}}>
+                  <div style={{fontSize:14,fontFamily:"var(--fd)",fontWeight:900,color:"var(--green)"}}>{r.projection}</div>
+                  <div style={{fontSize:9,color:"var(--text3)",fontFamily:"var(--fd)"}}>PROJ PPG</div>
+                </div>
+              </div>
+            ))}
+            {/* Draft action */}
+            {selectedRookie && (
+              <div className="gc-bright pop-in" style={{padding:"16px",marginTop:10,border:"1px solid rgba(0,229,138,.2)",borderRadius:14}}>
+                <div style={{fontSize:11,fontFamily:"var(--fd)",fontWeight:800,color:"var(--green)",letterSpacing:".1em",marginBottom:10}}>DRAFT {ROOKIE_CLASS.find(r=>r.id===selectedRookie)?.name.toUpperCase()}</div>
+                <div style={{fontSize:11,fontFamily:"var(--fd)",fontWeight:700,color:"var(--text2)",marginBottom:6}}>ROOKIE CONTRACT LENGTH</div>
+                <div style={{display:"flex",gap:5,marginBottom:12}}>
+                  {[2,3,4,5].filter(y=>y<=settings.maxContractYears).map(y=>(
+                    <button key={y} onClick={()=>setDraftContractYrs(y)} style={{flex:1,padding:"9px 0",borderRadius:8,border:"1px solid",borderColor:draftContractYrs===y?"var(--green)":"var(--border2)",background:draftContractYrs===y?"rgba(0,229,138,.12)":"var(--surf2)",color:draftContractYrs===y?"var(--green)":"var(--text3)",fontFamily:"var(--fd)",fontSize:14,fontWeight:900,cursor:"pointer"}}>{y}YR</button>
+                  ))}
+                </div>
+                <button className="btn-p" style={{width:"100%"}} onClick={()=>draftPlayer(selectedRookie)}>DRAFT PLAYER</button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* DRAFT LOTTERY */}
+        {tab==="lottery" && settings.draftLottery && (
+          <div>
+            <div className="gc" style={{padding:"20px",textAlign:"center",marginBottom:14}}>
+              <div style={{fontSize:40,marginBottom:8}}>{"\u{1F3B0}"}</div>
+              <div style={{fontFamily:"var(--fh)",fontSize:24,marginBottom:4}}>2025 DRAFT LOTTERY</div>
+              <div style={{fontSize:12,color:"var(--text2)",marginBottom:14}}>
+                {settings.lotteryWeights ? "Weighted lottery \u2014 worst records get better odds" : "Random lottery \u2014 equal odds for all non-playoff teams"}
+              </div>
+              {!lotteryResults && (
+                <button className="btn-p" style={{padding:"14px 40px",fontSize:16}} onClick={runLottery} disabled={lotteryRunning}>
+                  {lotteryRunning ? <><span className="spin-el" style={{display:"inline-block",marginRight:10,verticalAlign:"middle"}}/> DRAWING...</> : "\u{1F3B2} RUN LOTTERY"}
+                </button>
+              )}
+            </div>
+            {lotteryResults && (
+              <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                {lotteryResults.map((t,i)=>(
+                  <div key={t.id} className={i<=lotteryRevealIdx?"lottery-card":""} style={{opacity:i<=lotteryRevealIdx?1:0,transition:"opacity 0.3s"}}>
+                    <div className="gc" style={{padding:"14px 16px",display:"flex",alignItems:"center",gap:12,borderLeft:t.id==="t1"?"3px solid var(--green)":"3px solid transparent",background:t.id==="t1"?"rgba(0,229,138,0.04)":"transparent"}}>
+                      <div style={{width:32,height:32,borderRadius:10,background:i<3?"rgba(240,192,64,.12)":"var(--surf3)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--fh)",fontSize:18,color:i<3?"var(--gold)":"var(--text2)"}}>{i+1}</div>
+                      <span style={{fontSize:22}}>{t.logo}</span>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:14,fontWeight:t.id==="t1"?700:500}}>{t.name}</div>
+                        <div style={{fontSize:11,color:"var(--text2)"}}>{t.record} | {t.owners.join(" & ")}</div>
+                      </div>
+                      <div style={{fontSize:12,fontFamily:"var(--fd)",fontWeight:800,color:i<3?"var(--gold)":"var(--text3)"}}>Pick 1.0{i+1}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* MY PICKS */}
+        {tab==="picks" && (
+          <div>
+            <SectionHead>YOUR DRAFT CAPITAL</SectionHead>
+            {Object.entries(myTeam.picks).map(([yr, picks]) => (
+              <div key={yr} style={{marginBottom:14}}>
+                <div style={{fontSize:12,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text2)",marginBottom:6}}>{yr}</div>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  {picks.map(pick => (
+                    <div key={pick} className="gc" style={{padding:"10px 16px",display:"flex",alignItems:"center",gap:8}}>
+                      <div style={{fontSize:16,fontFamily:"var(--fd)",fontWeight:900,color:pick.startsWith("1")?"var(--gold)":pick.startsWith("2")?"var(--blue)":"var(--text2)"}}>{pick}</div>
+                      {settings.pickValueTracker && <Pill bg="var(--surf3)" col="var(--text2)" sz={9}>Val: {getPickValue(pick)}</Pill>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* PICK VALUE CHART */}
+        {tab==="values" && settings.pickValueTracker && (
+          <div>
+            <SectionHead>2025 PICK VALUE CHART</SectionHead>
+            <div className="gc" style={{padding:"16px",marginBottom:12}}>
+              {Object.entries(PICK_VALUES).map(([pick, val]) => {
+                const round = pick.split(".")[0];
+                const color = round==="1" ? "var(--gold)" : round==="2" ? "var(--blue)" : "var(--text2)";
+                const owned = Object.values(myTeam.picks).flat().includes(pick);
+                return (
+                  <div key={pick} style={{display:"flex",alignItems:"center",gap:10,padding:"4px 0"}}>
+                    <div style={{width:36,fontSize:12,fontFamily:"var(--fd)",fontWeight:900,color:owned?"var(--green)":color}}>{pick}</div>
+                    <div style={{flex:1,height:8,borderRadius:4,background:"var(--surf3)",overflow:"hidden"}}>
+                      <div style={{height:"100%",width:`${val}%`,borderRadius:4,background:owned?`linear-gradient(90deg,var(--green),var(--green2))`:`linear-gradient(90deg,${color},${color}66)`,transition:"width 1s ease"}}/>
+                    </div>
+                    <div style={{width:28,fontSize:11,fontFamily:"var(--fd)",fontWeight:800,color:owned?"var(--green)":"var(--text3)",textAlign:"right"}}>{val}</div>
+                    {owned && <div style={{width:6,height:6,borderRadius:3,background:"var(--green)"}}/>}
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{fontSize:10,color:"var(--text3)",textAlign:"center"}}>
+              {"\u{1F7E2}"} = Your picks | Values based on dynasty community consensus
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // WEEKLY COMMISH REPORT
+  // ═══════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════
+  // PLAYER PROFILE SHEET (with metrics, AI predictions, matchup)
+  // ═══════════════════════════════════════════════════════════════════════
+  function PlayerSheet({player, onClose}) {
+    const [tab, setTab] = useState("overview");
+    const [prediction, setPrediction] = useState(null);
+    const [predicting, setPredicting] = useState(false);
+    if (!player) return null;
+    const avg = player.pts.filter(x=>x>0).reduce((a,b)=>a+b,0) / Math.max(1,player.pts.filter(x=>x>0).length);
+    const high = Math.max(...player.pts.filter(x=>x>0).concat([0]));
+    const low = Math.min(...player.pts.filter(x=>x>0).concat([0]));
+    const contractTotal = player.salary * player.left;
+    const surplus = Math.round((avg - player.salary) * player.left * 10) / 10;
+    const ownerTeam = teams.find(t => t.id === player.owner);
+
+    const runPrediction = async () => {
+      setPredicting(true);
+      const result = await generateProjection(player);
+      setPrediction(result);
+      setPredicting(false);
+    };
+
+    const gradeColor = g => ({"A":"#00e58a","B":"#ffb020","C":"#ff9500","D":"#ff3d57","F":"#ff3d57"})[g] || "#7a90a8";
+
+    return (
+      <div className="modal-scrim" onClick={onClose}>
+        <div className="modal-sheet" onClick={e=>e.stopPropagation()} style={{maxHeight:"92vh"}}>
+          <div className="drag-handle"/>
+          {/* Hero */}
+          <div style={{padding:"12px 20px 16px",background:"linear-gradient(135deg,"+PC(player.pos)+"15,transparent 60%)",borderBottom:"1px solid var(--border)"}}>
+            <div style={{display:"flex",alignItems:"center",gap:14}}>
+              <div style={{width:56,height:56,borderRadius:16,background:PC(player.pos)+"22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontFamily:"var(--fd)",fontWeight:900,color:PC(player.pos),border:"2px solid "+PC(player.pos)+"44"}}>{player.pos}</div>
+              <div style={{flex:1}}>
+                <div style={{fontFamily:"var(--fh)",fontSize:26,lineHeight:1}}>{player.name.toUpperCase()}</div>
+                <div style={{fontSize:12,color:"var(--text2)",marginTop:2}}>{player.pos} | {player.team} | {player.slot}{player.age ? " | Age "+player.age : ""}</div>
+              </div>
+              <MiniSparkline data={player.pts} color={PC(player.pos)} width={50} height={28}/>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:8,marginTop:14}}>
+              {[["AVG",avg.toFixed(1),"var(--green)"],["HIGH",high.toFixed(1),"var(--gold)"],["SALARY","$"+player.salary,player.salary>30?"var(--red)":"var(--text)"],["LEFT",player.left+"yr",player.left<=1?"var(--amber)":"var(--text)"]].map(([l,v,c])=>(
+                <div key={l} style={{textAlign:"center"}}>
+                  <div style={{fontSize:16,fontFamily:"var(--fd)",fontWeight:900,color:c}}>{v}</div>
+                  <div style={{fontSize:8,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text3)",letterSpacing:".1em"}}>{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div style={{padding:"10px 20px 0"}}>
+            <div style={{display:"flex",gap:4,overflowX:"auto"}} className="no-scroll">
+              {[["overview","Overview"],["metrics","Metrics"],["predict","AI Predict"],["contract","Contract"],["matchup","Matchup"]].map(([id,label])=>(
+                <button key={id} onClick={()=>setTab(id)} style={{flexShrink:0,padding:"6px 12px",borderRadius:8,border:"none",fontFamily:"var(--fd)",fontSize:11,fontWeight:800,cursor:"pointer",background:tab===id?"var(--green)":"var(--surf2)",color:tab===id?"#000":"var(--text2)",marginBottom:10}}>{label}</button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{padding:"0 20px 20px",maxHeight:"50vh",overflowY:"auto"}} className="no-scroll">
+            {/* OVERVIEW */}
+            {tab==="overview" && (
+              <div>
+                <div className="gc" style={{padding:"14px 16px",marginBottom:8}}>
+                  <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text3)",letterSpacing:".1em",marginBottom:8}}>WEEKLY SCORES</div>
+                  <div style={{display:"flex",gap:6}}>
+                    {player.pts.map((pt,i)=>(
+                      <div key={i} style={{flex:1,textAlign:"center"}}>
+                        <div style={{height:40,display:"flex",alignItems:"flex-end",justifyContent:"center",marginBottom:4}}>
+                          <div style={{width:"100%",maxWidth:24,borderRadius:4,background:pt===high?"linear-gradient(180deg,var(--gold),var(--gold)66)":pt>0?"linear-gradient(180deg,"+PC(player.pos)+","+PC(player.pos)+"44)":"var(--surf3)",height:pt>0?(pt/Math.max(high,1))*100+"%":"4px"}}/>
+                        </div>
+                        <div style={{fontSize:11,fontFamily:"var(--fd)",fontWeight:800,color:pt===0?"var(--text3)":"var(--text)"}}>{pt>0?pt:"--"}</div>
+                        <div style={{fontSize:8,color:"var(--text3)"}}>W{11-i}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {ownerTeam && (
+                  <div className="gc" style={{padding:"10px 16px",display:"flex",alignItems:"center",gap:8}}>
+                    <span style={{fontSize:18}}>{ownerTeam.logo}</span>
+                    <span style={{fontSize:12}}>{ownerTeam.name}</span>
+                    <span style={{fontSize:11,color:"var(--text3)",marginLeft:"auto"}}>{ownerTeam.owners.join(" & ")}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* PHYSICAL METRICS */}
+            {tab==="metrics" && (
+              <div>
+                <div className="gc" style={{padding:"14px 16px",marginBottom:8}}>
+                  <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text3)",letterSpacing:".1em",marginBottom:10}}>PHYSICAL PROFILE</div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+                    {[
+                      ["HEIGHT",player.height||"--","var(--text)"],
+                      ["WEIGHT",(player.weight||"--")+"lb","var(--text)"],
+                      ["40 TIME",(player.forty||"--")+"s",parseFloat(player.forty||"5")<=4.4?"var(--green)":"var(--text)"],
+                      ["ARM LEN",player.armLength||"--","var(--text)"],
+                      ["BENCH",player.bench?player.bench+" reps":"--","var(--text)"],
+                      ["RAS",player.ras||"--",parseFloat(player.ras||"0")>9?"var(--green)":"var(--text)"],
+                    ].map(([l,v,c])=>(
+                      <div key={l} style={{textAlign:"center",padding:8,borderRadius:8,background:"var(--surf2)"}}>
+                        <div style={{fontSize:15,fontFamily:"var(--fd)",fontWeight:900,color:c}}>{v}</div>
+                        <div style={{fontSize:8,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text3)",letterSpacing:".08em"}}>{l}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="gc" style={{padding:"14px 16px"}}>
+                  <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text3)",letterSpacing:".1em",marginBottom:8}}>BACKGROUND</div>
+                  {[
+                    ["Age",player.age||"--"],
+                    ["College",player.college||"--"],
+                    ["Draft Pick",player.draftPick||"--"],
+                    ["Bye Week",player.byeWeek||"--"],
+                  ].map(([l,v],i)=>(
+                    <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:i<3?"1px solid var(--border)":"none"}}>
+                      <span style={{fontSize:12,color:"var(--text2)"}}>{l}</span>
+                      <span style={{fontSize:12,fontFamily:"var(--fd)",fontWeight:800}}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* AI PREDICTION */}
+            {tab==="predict" && (
+              <div>
+                {!prediction && !predicting && (
+                  <div style={{textAlign:"center",padding:20}}>
+                    <div style={{fontSize:40,marginBottom:12}}>{"\u{1F9E0}"}</div>
+                    <div style={{fontSize:14,fontWeight:600,marginBottom:4}}>AI Weekly Projection</div>
+                    <div style={{fontSize:12,color:"var(--text2)",marginBottom:16}}>Analyzes matchup, trends, physical profile, and usage to predict this week.</div>
+                    <button className="btn-p" style={{padding:"12px 30px"}} onClick={runPrediction}>GENERATE PROJECTION</button>
+                  </div>
+                )}
+                {predicting && (
+                  <div style={{textAlign:"center",padding:30}}>
+                    <div className="spin-el" style={{margin:"0 auto 12px",width:28,height:28}}/>
+                    <div style={{fontSize:13,color:"var(--text2)"}}>AI analyzing {player.name}...</div>
+                  </div>
+                )}
+                {prediction && (
+                  <div className="pop-in">
+                    <div className="gc" style={{padding:"16px",marginBottom:8,borderLeft:"3px solid "+gradeColor(prediction.grade)}}>
+                      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
+                        <div className="grade-badge" style={{background:gradeColor(prediction.grade)+"18",color:gradeColor(prediction.grade)}}>{prediction.grade}</div>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text3)",letterSpacing:".1em"}}>WEEK 11 PROJECTION</div>
+                          <div style={{fontFamily:"var(--fh)",fontSize:36,color:"var(--green)",lineHeight:1}}>{prediction.projection}</div>
+                        </div>
+                        <div style={{textAlign:"right"}}>
+                          <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text3)"}}>CONFIDENCE</div>
+                          <div style={{fontSize:18,fontFamily:"var(--fd)",fontWeight:900,color:prediction.confidence>70?"var(--green)":"var(--amber)"}}>{prediction.confidence}%</div>
+                        </div>
+                      </div>
+                      <div style={{display:"flex",gap:8,marginBottom:10}}>
+                        <div style={{flex:1,padding:8,borderRadius:8,background:"var(--surf2)",textAlign:"center"}}>
+                          <div style={{fontSize:16,fontFamily:"var(--fd)",fontWeight:900,color:"var(--red)"}}>{prediction.floor}</div>
+                          <div style={{fontSize:8,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text3)"}}>FLOOR</div>
+                        </div>
+                        <div style={{flex:1,padding:8,borderRadius:8,background:"var(--surf2)",textAlign:"center"}}>
+                          <div style={{fontSize:16,fontFamily:"var(--fd)",fontWeight:900,color:"var(--gold)"}}>{prediction.ceiling}</div>
+                          <div style={{fontSize:8,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text3)"}}>CEILING</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {prediction.matchupAdvantage && (
+                      <div className="gc" style={{padding:"10px 14px",marginBottom:8,borderLeft:"3px solid var(--blue)"}}>
+                        <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--blue)",letterSpacing:".08em",marginBottom:2}}>MATCHUP</div>
+                        <div style={{fontSize:12}}>{prediction.matchupAdvantage}</div>
+                      </div>
+                    )}
+
+                    {prediction.factors && (
+                      <div className="gc" style={{padding:"12px 14px",marginBottom:8}}>
+                        <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--green)",letterSpacing:".08em",marginBottom:6}}>KEY FACTORS</div>
+                        {prediction.factors.map((f,i)=>(
+                          <div key={i} style={{fontSize:12,color:"var(--text2)",padding:"3px 0",display:"flex",gap:6,alignItems:"flex-start"}}>
+                            <span style={{color:"var(--green)",flexShrink:0}}>+</span>{f}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {prediction.risks && (
+                      <div className="gc" style={{padding:"12px 14px"}}>
+                        <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--red)",letterSpacing:".08em",marginBottom:6}}>RISK FACTORS</div>
+                        {prediction.risks.map((r,i)=>(
+                          <div key={i} style={{fontSize:12,color:"var(--text2)",padding:"3px 0",display:"flex",gap:6,alignItems:"flex-start"}}>
+                            <span style={{color:"var(--red)",flexShrink:0}}>!</span>{r}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <button className="btn-g" style={{width:"100%",marginTop:8}} onClick={runPrediction}>REGENERATE</button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* CONTRACT */}
+            {tab==="contract" && (
+              <div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+                  <div className="gc" style={{padding:"12px",textAlign:"center"}}>
+                    <div style={{fontSize:24,fontFamily:"var(--fd)",fontWeight:900,color:"var(--green)"}}>${player.salary}</div>
+                    <div style={{fontSize:9,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text3)"}}>PER YEAR</div>
+                  </div>
+                  <div className="gc" style={{padding:"12px",textAlign:"center"}}>
+                    <div style={{fontSize:24,fontFamily:"var(--fd)",fontWeight:900,color:"var(--text)"}}>{player.left}yr</div>
+                    <div style={{fontSize:9,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text3)"}}>REMAINING</div>
+                  </div>
+                </div>
+                <div className="gc" style={{padding:"12px",marginBottom:8}}>
+                  {[["Total Remaining","$"+contractTotal],["Cap Surplus",(surplus>0?"+$":"$")+surplus,surplus>0?"var(--green)":"var(--red)"],["Dead Cap if Cut","$"+Math.max(0,(player.left-1)*Math.round(player.salary*(settings.deadCapPct/100))),"var(--red)"]].map(([l,v,c],i)=>(
+                    <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:i<2?"1px solid var(--border)":"none"}}>
+                      <span style={{fontSize:12,color:"var(--text2)"}}>{l}</span>
+                      <span style={{fontSize:12,fontFamily:"var(--fd)",fontWeight:800,color:c||"var(--text)"}}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                  <Pips total={player.contract} left={player.left}/>
+                  {player.tagged && <Pill bg="rgba(255,176,32,.14)" col="var(--amber)" sz={10}>FRANCHISE TAGGED</Pill>}
+                </div>
+              </div>
+            )}
+
+            {/* MATCHUP */}
+            {tab==="matchup" && (
+              <div>
+                <div className="gc" style={{padding:"16px",marginBottom:8}}>
+                  <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text3)",letterSpacing:".1em",marginBottom:8}}>WEEK 11 OPPONENT</div>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div>
+                      <div style={{fontFamily:"var(--fh)",fontSize:28}}>{player.nextOpp || "TBD"}</div>
+                      <div style={{fontSize:11,color:"var(--text2)"}}>vs {player.pos} rank: #{player.nextOppRank || "--"}</div>
+                    </div>
+                    <div style={{textAlign:"right"}}>
+                      <Pill bg={(player.nextOppRank||16)>=24?"rgba(0,229,138,.12)":(player.nextOppRank||16)<=8?"rgba(255,61,87,.12)":"rgba(255,176,32,.12)"} col={(player.nextOppRank||16)>=24?"var(--green)":(player.nextOppRank||16)<=8?"var(--red)":"var(--amber)"} sz={11}>
+                        {(player.nextOppRank||16)>=24?"SMASH":(player.nextOppRank||16)<=8?"TOUGH":"NEUTRAL"}
+                      </Pill>
+                    </div>
+                  </div>
+                </div>
+                <div className="gc" style={{padding:"14px 16px"}}>
+                  <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text3)",letterSpacing:".1em",marginBottom:8}}>MATCHUP HISTORY</div>
+                  <div style={{display:"flex",gap:6}}>
+                    {player.pts.map((pt,i)=>{
+                      const isGood = pt > avg;
+                      return (
+                        <div key={i} style={{flex:1,textAlign:"center",padding:6,borderRadius:6,background:isGood?"rgba(0,229,138,.06)":"rgba(255,61,87,.06)"}}>
+                          <div style={{fontSize:13,fontFamily:"var(--fd)",fontWeight:900,color:isGood?"var(--green)":"var(--red)"}}>{pt>0?pt:"--"}</div>
+                          <div style={{fontSize:8,color:"var(--text3)"}}>W{11-i}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // CHAT SCREEN (League Chat + Direct Messages)
+  // ═══════════════════════════════════════════════════════════════════════
+  function ChatScreen() {
+    const [tab, setTab] = useState("league");
+    const chatEndRef = useRef(null);
+    const otherTeams = teams.filter(t => t.id !== "t1");
+
+    const filteredMsgs = chatMessages.filter(m => {
+      if (tab === "league") return m.channel === "league";
+      return m.channel === "dm-" + tab || (m.channel === "dm-" + tab && m.from === "t1") || (m.from === tab && m.channel.startsWith("dm"));
+    });
+
+    const sendMessage = () => {
+      if (!chatInput.trim()) return;
+      const channel = tab === "league" ? "league" : "dm-" + tab;
+      setChatMessages(msgs => [...msgs, {
+        id: Date.now(), from: "t1", name: "You", msg: chatInput.trim(), time: "now", channel
+      }]);
+      setChatInput("");
+    };
+
+    const handleKey = (e) => { if (e.key === "Enter") sendMessage(); };
+
+    const dmTeam = tab !== "league" ? teams.find(t => t.id === tab) : null;
+    const unreadDMs = otherTeams.filter(t => chatMessages.some(m => m.from === t.id && m.channel === "dm-" + t.id));
+
+    return (
+      <div className="rise" style={{padding:"20px 16px 100px",display:"flex",flexDirection:"column",height:"calc(100vh - 80px)"}}>
+        <div style={{fontFamily:"var(--fh)",fontSize:32,marginBottom:10}}>
+          {tab === "league" ? "LEAGUE CHAT" : dmTeam ? "DM: " + dmTeam.name : "CHAT"}
+        </div>
+
+        {/* Channel Selector */}
+        <div style={{display:"flex",gap:5,marginBottom:10,overflowX:"auto",flexShrink:0}} className="no-scroll">
+          <button onClick={()=>setTab("league")} style={{flexShrink:0,padding:"6px 14px",borderRadius:8,border:"none",fontFamily:"var(--fd)",fontSize:11,fontWeight:800,cursor:"pointer",background:tab==="league"?"var(--green)":"var(--surf2)",color:tab==="league"?"#000":"var(--text2)"}}>LEAGUE</button>
+          {settings.directMessages && otherTeams.map(t => (
+            <button key={t.id} onClick={()=>setTab(t.id)} style={{flexShrink:0,padding:"6px 10px",borderRadius:8,border:"none",fontFamily:"var(--fd)",fontSize:11,fontWeight:800,cursor:"pointer",background:tab===t.id?"var(--blue)":"var(--surf2)",color:tab===t.id?"#fff":"var(--text2)",position:"relative"}}>
+              {t.logo} {t.owners[0].split(" ")[0]}
+              {unreadDMs.find(x=>x.id===t.id) && tab!==t.id && <div className="notif-dot" style={{top:-2,right:-2}}/>}
+            </button>
+          ))}
+        </div>
+
+        {/* Messages */}
+        <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:6,marginBottom:10,minHeight:0}} className="no-scroll">
+          {filteredMsgs.length === 0 && <div style={{textAlign:"center",padding:40,color:"var(--text3)"}}>{tab==="league"?"No messages yet. Start the conversation!":"No messages with this team yet."}</div>}
+          {filteredMsgs.map(m => {
+            const isMe = m.from === "t1";
+            const team = teams.find(t=>t.id===m.from);
+            return (
+              <div key={m.id} style={{display:"flex",flexDirection:isMe?"row-reverse":"row",gap:8,alignItems:"flex-end"}}>
+                {!isMe && <div style={{width:28,height:28,borderRadius:8,background:"var(--surf3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>{team?.logo}</div>}
+                <div style={{maxWidth:"75%",padding:"8px 12px",borderRadius:isMe?"12px 12px 4px 12px":"12px 12px 12px 4px",background:isMe?"rgba(0,229,138,.12)":"var(--surf2)",border:`1px solid ${isMe?"rgba(0,229,138,.2)":"var(--border)"}`}}>
+                  {!isMe && tab==="league" && <div style={{fontSize:10,fontFamily:"var(--fd)",fontWeight:800,color:PC("QB"),marginBottom:2}}>{m.name}</div>}
+                  <div style={{fontSize:13,lineHeight:1.4}}>{m.msg}</div>
+                  <div style={{fontSize:9,color:"var(--text3)",marginTop:2,textAlign:isMe?"right":"left"}}>{m.time}</div>
+                </div>
+              </div>
+            );
+          })}
+          <div ref={chatEndRef}/>
+        </div>
+
+        {/* Input */}
+        <div style={{display:"flex",gap:8,flexShrink:0}}>
+          <input type="text" value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={handleKey} placeholder={tab==="league"?"Message the league...":"Send a DM..."} style={{flex:1}}/>
+          <button className="btn-p" style={{padding:"10px 16px",fontSize:13}} onClick={sendMessage} disabled={!chatInput.trim()}>SEND</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // CO-OWNER MANAGEMENT MODAL
+  // ═══════════════════════════════════════════════════════════════════════
+  function CoOwnerModal({teamId, onClose}) {
+    const [inviteName, setInviteName] = useState("");
+    const team = teams.find(t=>t.id===teamId);
+    if (!team) return null;
+
+    const addCoOwner = () => {
+      if (!inviteName.trim()) return;
+      if (team.owners.length >= settings.maxCoOwners + 1) {
+        addNotification("Max co-owners reached!", "amber");
+        return;
+      }
+      setTeams(ts => ts.map(t => t.id===teamId ? {...t, owners:[...t.owners, inviteName.trim()]} : t));
+      logTransaction("CO-OWNER ADDED", inviteName.trim() + " joined " + team.name);
+      addNotification(inviteName.trim() + " added as co-owner!", "green");
+      setInviteName("");
+    };
+
+    const removeCoOwner = (name) => {
+      if (team.owners.length <= 1) return;
+      setTeams(ts => ts.map(t => t.id===teamId ? {...t, owners:t.owners.filter(o=>o!==name)} : t));
+      logTransaction("CO-OWNER REMOVED", name + " removed from " + team.name);
+      addNotification(name + " removed as co-owner.", "red");
+    };
+
+    return (
+      <div className="modal-scrim" onClick={onClose}>
+        <div className="modal-sheet" onClick={e=>e.stopPropagation()} style={{maxHeight:"55vh"}}>
+          <div className="drag-handle"/>
+          <div style={{padding:"16px 20px"}}>
+            <div style={{fontFamily:"var(--fh)",fontSize:24,marginBottom:4}}>MANAGE CO-OWNERS</div>
+            <div style={{fontSize:12,color:"var(--text2)",marginBottom:14}}>{team.logo} {team.name}</div>
+
+            <SectionHead>CURRENT OWNERS ({team.owners.length}/{settings.maxCoOwners + 1})</SectionHead>
+            {team.owners.map((owner, i) => (
+              <div key={i} className="gc" style={{padding:"10px 14px",marginBottom:6,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <div style={{width:28,height:28,borderRadius:8,background:"var(--surf3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontFamily:"var(--fd)",fontWeight:900}}>{owner[0]}</div>
+                  <span style={{fontSize:13,fontWeight:i===0?700:400}}>{owner}</span>
+                  {i===0 && <Pill bg="rgba(240,192,64,.12)" col="var(--gold)" sz={9}>PRIMARY</Pill>}
+                </div>
+                {i > 0 && <button className="btn-d" style={{fontSize:10,padding:"4px 10px"}} onClick={()=>removeCoOwner(owner)}>Remove</button>}
+              </div>
+            ))}
+
+            {team.owners.length < settings.maxCoOwners + 1 && (
+              <div style={{marginTop:12}}>
+                <SectionHead>INVITE CO-OWNER</SectionHead>
+                <div style={{display:"flex",gap:8}}>
+                  <input type="text" value={inviteName} onChange={e=>setInviteName(e.target.value)} placeholder="Enter name..." style={{flex:1}}/>
+                  <button className="btn-p" style={{padding:"10px 16px"}} onClick={addCoOwner} disabled={!inviteName.trim()}>INVITE</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function CommishReportModal({onClose}) {
+    const topScorer = myRoster.reduce((best, p) => (!best || p.pts[0] > best.pts[0]) ? p : best, null);
+    const worstBench = myRoster.filter(p=>["BN"].includes(p.slot)).reduce((best, p) => (!best || p.pts[0] > best.pts[0]) ? p : best, null);
+    return (
+      <div className="modal-scrim" onClick={onClose}>
+        <div className="modal-sheet" onClick={e=>e.stopPropagation()}>
+          <div className="drag-handle"/>
+          <div style={{padding:"16px 20px"}}>
+            <div style={{textAlign:"center",marginBottom:16}}>
+              <div style={{fontSize:11,fontFamily:"var(--fd)",fontWeight:800,color:"var(--text3)",letterSpacing:".12em"}}>AUTO-GENERATED</div>
+              <div style={{fontFamily:"var(--fh)",fontSize:28}}>WEEK 10 COMMISH REPORT</div>
+            </div>
+
+            <div className="gc" style={{padding:"16px",marginBottom:10}}>
+              <div style={{fontSize:11,fontFamily:"var(--fd)",fontWeight:800,color:"var(--green)",letterSpacing:".1em",marginBottom:6}}>POWER RANKINGS SHIFT</div>
+              {teams.slice(0,4).map((t,i)=>(
+                <div key={t.id} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0"}}>
+                  <span style={{fontSize:14,fontFamily:"var(--fd)",fontWeight:900,color:i===0?"var(--green)":"var(--text2)"}}>{i+1}</span>
+                  <span style={{fontSize:16}}>{t.logo}</span>
+                  <span style={{flex:1,fontSize:12,fontWeight:t.id==="t1"?700:400}}>{t.name}</span>
+                  <span style={{fontSize:11,color:t.streak.startsWith("W")?"var(--green)":"var(--red)"}}>{t.streak}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="gc" style={{padding:"16px",marginBottom:10}}>
+              <div style={{fontSize:11,fontFamily:"var(--fd)",fontWeight:800,color:"var(--gold)",letterSpacing:".1em",marginBottom:6}}>PLAYER OF THE WEEK</div>
+              {topScorer && <div style={{fontSize:16,fontWeight:700}}>{topScorer.name} \u2014 {topScorer.pts[0]} pts</div>}
+            </div>
+
+            {worstBench && worstBench.pts[0] > 15 && (
+              <div className="gc" style={{padding:"16px",marginBottom:10}}>
+                <div style={{fontSize:11,fontFamily:"var(--fd)",fontWeight:800,color:"var(--red)",letterSpacing:".1em",marginBottom:6}}>WORST BENCH DECISION</div>
+                <div style={{fontSize:13}}>{worstBench.name} scored {worstBench.pts[0]} pts on your bench!</div>
+              </div>
+            )}
+
+            <div className="gc" style={{padding:"16px",marginBottom:10}}>
+              <div style={{fontSize:11,fontFamily:"var(--fd)",fontWeight:800,color:"var(--blue)",letterSpacing:".1em",marginBottom:6}}>NOTABLE TRANSACTIONS</div>
+              {transactionLog.slice(0,3).map(t => (
+                <div key={t.id} style={{fontSize:12,color:"var(--text2)",padding:"3px 0"}}>\u2022 {t.detail}</div>
+              ))}
+              {transactionLog.length === 0 && <div style={{fontSize:12,color:"var(--text3)"}}>No transactions this week</div>}
+            </div>
+
+            <div className="gc" style={{padding:"16px"}}>
+              <div style={{fontSize:11,fontFamily:"var(--fd)",fontWeight:800,color:"var(--amber)",letterSpacing:".1em",marginBottom:6}}>CAP STANDINGS</div>
+              {teams.slice(0,4).map(t=>(
+                <div key={t.id} style={{display:"flex",justifyContent:"space-between",padding:"4px 0",fontSize:12}}>
+                  <span>{t.name}</span>
+                  <span style={{fontFamily:"var(--fd)",fontWeight:800,color:t.cap>230?"var(--red)":"var(--text2)"}}>${t.cap} / ${settings.salaryCap}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // BOTTOM NAV
+  // ═══════════════════════════════════════════════════════════════════════
+  const navTabs = [
+    {id:"home",icon:"\u{1F3C8}",label:"HOME"},
+    {id:"roster",icon:"\u{1F4CB}",label:"ROSTER"},
+    {id:"trades",icon:"\u{1F504}",label:"TRADES"},
+    {id:"draft",icon:"\u{1F3AF}",label:"DRAFT"},
+    {id:"league",icon:"\u{1F3C6}",label:"LEAGUE"},
+    settings.leagueChat&&{id:"chat",icon:"\u{1F4AC}",label:"CHAT"},
+    {id:"commish",icon:"\u2699\uFE0F",label:"COMMISH"},
+  ].filter(Boolean);
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // RENDER
+  // ═══════════════════════════════════════════════════════════════════════
+  return (
+    <>
+      <style>{STYLES}</style>
+      <FieldBg/>
+      <div className="app-wrap">
+        {screen==="home" && <HomeScreen/>}
+        {screen==="roster" && <RosterScreen/>}
+        {screen==="trades" && <TradesScreen/>}
+        {screen==="waivers" && <WaiversScreen/>}
+        {screen==="draft" && <DraftScreen/>}
+        {screen==="league" && <LeagueScreen/>}
+        {screen==="chat" && <ChatScreen/>}
+        {screen==="commish" && <CommishScreen/>}
+
+        {/* Modals */}
+        {modal?.type==="trade" && <TradeModal otherTeamId={modal.teamId} onClose={()=>setModal(null)}/>}
+        {modal?.type==="waiver" && <WaiverModal player={modal.player} onClose={()=>setModal(null)}/>}
+        {modal?.type==="extend" && <ExtensionModal player={modal.player} onClose={()=>setModal(null)}/>}
+        {modal?.type==="player" && <PlayerSheet player={modal.player} onClose={()=>setModal(null)}/>}
+        {modal?.type==="coowner" && <CoOwnerModal teamId={modal.teamId} onClose={()=>setModal(null)}/>}
+        {modal?.type==="commishReport" && <CommishReportModal onClose={()=>setModal(null)}/>}
+
+        {/* Notifications Toast */}
+        <div style={{position:"fixed",top:12,left:"50%",transform:"translateX(-50%)",zIndex:400,display:"flex",flexDirection:"column",gap:6,maxWidth:500,width:"90%"}}>
+          {notifications.map(n=>(
+            <div key={n.id} className="slide-in" style={{padding:"10px 16px",borderRadius:12,background:n.type==="green"?"rgba(0,229,138,.15)":n.type==="red"?"rgba(255,61,87,.15)":n.type==="amber"?"rgba(255,176,32,.15)":"rgba(59,142,255,.15)",border:`1px solid ${n.type==="green"?"rgba(0,229,138,.3)":n.type==="red"?"rgba(255,61,87,.3)":n.type==="amber"?"rgba(255,176,32,.3)":"rgba(59,142,255,.3)"}`,backdropFilter:"blur(12px)",fontSize:13}}>
+              {n.msg}
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom Nav */}
+        <div className="bot-nav glass-nav">
+          {navTabs.map(t=>(
+            <button key={t.id} onClick={()=>setScreen(t.id)} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",padding:0}}>
+              <div style={{width:34,height:34,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",background:screen===t.id?"rgba(0,229,138,0.12)":"transparent",transition:"background .15s"}}>
+                <span style={{fontSize:16}}>{t.icon}</span>
+              </div>
+              <span style={{fontSize:8,fontFamily:"var(--fd)",fontWeight:900,letterSpacing:".09em",color:screen===t.id?"var(--green)":"var(--text3)"}}>{t.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(React.createElement(App));
+</script></body></html>
